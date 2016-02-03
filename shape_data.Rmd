@@ -1,0 +1,167 @@
+---
+title: "aggregate visualization data"
+output: html_document
+---
+
+
+
+Package loading...
+```{r}
+library(ggplot2)
+library(dplyr)
+library(countrycode)
+```
+
+
+
+```{r, echo=FALSE}
+setwd(paste0(getwd(), "/GitHub"))
+getwd()
+# suppress scientific notation just a hack i guess
+options(scipen=999)
+#list.files()
+```
+
+
+
+Let's add country code to the mobile data so that we can merge the GNI data by a common value later. Also, we'll keep only the relevant features.
+```{r}
+mobile <- read.csv("mobile-parameters-q2-2015-updated.csv", header = TRUE, sep = ",")
+mobile$Code <- countrycode(mobile$Country, "country.name", "wb")
+mobile <- mobile %>% select(Country, Code, Usage.allowance, Allowance.units,
+                            Validity..days., Cost, Tarrif.Currecy)
+```
+
+
+
+Now we can add the relevant exchange rate and GNI data...
+```{r}
+gni_usd <- read.csv("world-gni-historic.csv", header = TRUE,
+                           sep = ",")
+xrates_usd <- read.csv("xrates-2015.csv", header = TRUE, sep = ",")
+
+gni_usd <- gni_usd %>% select(Country.Code, X2014)
+```
+
+
+
+Let's check if there are any errors in the currency coding in the mobile data set...
+```{r}
+check <- mobile %>% distinct(Tarrif.Currecy) %>% group_by(Country) %>%
+  summarise(count = n()) %>% filter(count > 1)
+
+check <- as.vector(check$Country)
+check
+
+redos <- mobile %>% filter(Country %in% check) %>%
+  distinct(Tarrif.Currecy) %>% select(Tarrif.Currecy)
+
+redos <- as.vector(unlist(redos))
+redos
+```
+
+
+
+We can recode the currency coding errors to keep that data...
+```{r}
+index <- mobile$Tarrif.Currecy == "AFS"
+mobile$Tarrif.Currecy[index] <- "AFN"
+
+index <- mobile$Tarrif.Currecy == "BYR "
+mobile$Tarrif.Currecy[index] <- "BYR"
+
+index <- mobile$Tarrif.Currecy == "CKZ"
+mobile$Tarrif.Currecy[index] <- "CZK"
+
+index <- mobile$Tarrif.Currecy == "MGA "
+mobile$Tarrif.Currecy[index] <- "MGA"
+
+index <- mobile$Tarrif.Currecy == "GBP "
+mobile$Tarrif.Currecy[index] <- "GBP"
+```
+
+
+
+Now we can merge the exchange rate and GNI data to the mobile data...
+```{r}
+combine <- merge(mobile, xrates_usd, by.x = "Tarrif.Currecy",
+                  by.y = "Currency_Code", all.x = TRUE)
+
+combine <- merge(combine, gni_usd, by.x = "Code",
+                  by.y = "Country.Code", all.x = TRUE)
+```
+
+
+
+The names are not precise and kind of inconvenient...
+```{r}
+names(combine)
+
+names(combine) <- c("country.code", "currency.code", "country.name",
+                    "data.amount", "data.unit", "expiry", "cost.local", "usdxrate",
+                    "gni")
+```
+
+
+
+Get rid of rows without data...
+```{r}
+# change empty string to NA
+combine[combine == ""] <- NA
+
+combine <- na.omit(combine)
+```
+
+
+
+Let's make sure that our features are the correct data type
+```{r}
+str(combine)
+
+# as numeric from factor would assign a number corresponding to the level
+# of the factor. we need as character before numeric to get the value.
+combine$expiry <- as.numeric(as.character(combine$expiry))
+combine$cost.local <- as.numeric(as.character(combine$cost.local))
+
+# lost one data point to coercion
+combine <- na.omit(combine)
+
+str(combine)
+```
+
+
+
+Create a USD cost for each mobile plan, a yearly cost, and a yearly percent of GNI cost...
+```{r}
+combine <- combine %>% mutate(cost.usd = cost.local/usdxrate, 
+                              cost.year.usd = cost.usd*(365/expiry),
+                              cost.year.perc.gni = cost.year.usd/gni)
+
+```
+
+
+
+Let's convert MB to GB for easier aggregation...
+```{r}
+#check = 2
+#if(combine$data.unit == "MB"){check = check + 1}
+#check
+
+#index <- mobile$Tarrif.Currecy == "CKZ"
+#mobile$Tarrif.Currecy[index] <- "CZK"
+
+```
+
+
+
+Let's group by data expiry for each country
+```{r}
+
+```
+
+
+
+Write data to csv for d3 visualization...
+```{r}
+write.csv(combine, file = "mobile-world-data.csv", row.names = FALSE)
+```
