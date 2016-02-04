@@ -152,21 +152,50 @@ plan.counts <- combine %>% group_by(expiry) %>% summarise(count = n())
 
 
 
-tester <- combine
 # logical vector of rows with "GB" as data unit and 1 as expiry
-gb1 <- tester$data.unit == "GB" & tester$expiry == 1
+gb1 <- combine$data.unit == "GB" & combine$expiry == 1
 
-# slice df by "GB" and "1" rows
-gb1 <- tester[gb1, ]
-#$data.unit <- "GB"
+# CHECK SELECTION BEFORE
+#combine[gb1, ]
+
+# slice df by "GB" and "1" rows and assign new units and amounts
+combine[gb1, ]$data.amount <- (combine[gb1, ]$data.amount * 1000)
+combine[gb1, ]$data.unit <- "MB"
+
+# CHECK SELECTION AFTER
+#combine[gb1, ]
+
+
+
 
 # logical vector of rows with "MB" as data unit and 7 as expiry
-mb7 <- tester$data.unit == "MB" & tester$expiry == 7
+mb7 <- combine$data.unit == "MB" & combine$expiry == 7
 
-# slice df by "GB" and "7" rows
-mb7 <- tester[mb7, ]
+# CHECK SELECTION BEFORE
+#combine[mb7, ]
 
-#$data.unit <- "GB"
+# slice df by "MB" and "7" rows and assign new units and amounts
+combine[mb7, ]$data.amount <- (combine[mb7, ]$data.amount / 1000)
+combine[mb7, ]$data.unit <- "GB"
+
+# CHECK SELECTION AFTER
+#combine[mb7, ]
+
+
+
+# logical vector of rows with "MB" as data unit and 30 as expiry
+mb30 <- combine$data.unit == "MB" & combine$expiry == 30
+
+# CHECK SELECTION BEFORE
+#combine[mb30, ]
+
+# slice df by "MB" and "30" rows and assign new units and amounts
+combine[mb30, ]$data.amount <- (combine[mb30, ]$data.amount / 1000)
+combine[mb30, ]$data.unit <- "GB"
+
+# CHECK SELECTION AFTER
+#combine[mb30, ]
+
 
 
 
