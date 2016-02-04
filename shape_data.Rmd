@@ -15,7 +15,7 @@ library(countrycode)
 
 
 ```{r, echo=FALSE}
-setwd(paste0(getwd(), "/GitHub"))
+setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project"))
 getwd()
 # suppress scientific notation just a hack i guess
 options(scipen=999)
@@ -26,8 +26,11 @@ options(scipen=999)
 
 Let's add country code to the mobile data so that we can merge the GNI data by a common value later. Also, we'll keep only the relevant features.
 ```{r}
-mobile <- read.csv("mobile-parameters-q2-2015-updated.csv", header = TRUE, sep = ",")
+mobile <- read.csv("mobile-parameters-q2-2015-updated.csv",
+                   header = TRUE, sep = ",")
+
 mobile$Code <- countrycode(mobile$Country, "country.name", "wb")
+
 mobile <- mobile %>% select(Country, Code, Usage.allowance, Allowance.units,
                             Validity..days., Cost, Tarrif.Currecy)
 ```
@@ -131,13 +134,10 @@ str(combine)
 
 
 
-Create a USD cost for each mobile plan, a yearly cost, and a yearly percent of GNI cost...
+Create a USD cost for each mobile plan and a monthly GNI.
 ```{r}
-combine <- combine %>% mutate(cost.usd = cost.local/usdxrate)#, 
-                              #cost.year.usd = cost.usd*(365/expiry),
-                              #cost.year.perc.gni = cost.year.usd/gni)
-# THE BY YEAR COSTS ARE TOO PREMATURE HERE PUT THEM BELOW!!!!!!!
-
+combine <- combine %>% mutate(cost.usd = cost.local/usdxrate) %>%
+  mutate(gni.month = gni/12)
 ```
 
 
@@ -173,18 +173,23 @@ combine[mb, ]$data.unit <- "GB"
 
 
 
-Now let's group by country and plan/expiry type and get total data amount and total cost...
+Now let's group by country and plan/expiry type to get total data amount and total cost for each plan duration. From here we can get an average cost in USD per GB for each plan duration for a given country.
 ```{r}
-# need to groupby 'gni' here or it gets removed in the chain
-test <- combine %>% group_by(country.name, expiry, gni) %>%
-  summarise(total.amount = sum(data.amount), total.cost = sum(cost.usd))
-
-test <- test %>% mutate(cost.usd.per.gb = total.cost/total.amount)
-
-test <- test %>% mutate(cost.year.usd = cost.usd.per.gb*(365/expiry),
-                        cost.year.perc.gni = cost.year.usd/gni)
+# need to groupby 'gni.month' and 'country.code' here or it gets removed in the chain
+final_df <- combine %>%
+  group_by(country.name, expiry, country.code, gni.month) %>%
+  summarise(total.amount = sum(data.amount), total.cost = sum(cost.usd)) %>%
+  mutate(cost.usd.per.gb = total.cost/total.amount)
+```
 
 
+
+Some kind of benchmark usage cost would be good to establish a typical monthly bill across plans/expiry.  Some sources that say the average person consumes about 2GB of mobile data (albeit in the US but this also doesn't include mobile wifi which is apparently close to 8GB per month) so a cost for this average consumption per plan/expiry would be nice.  We could also create another feature representing the proportion of the 2GB monthly consumption cost as a fraction of monthly GNI per person in that country.  This will really help to establish a relative measure for the choropleth map.
+```{r}
+final_df <- final_df %>%
+  mutate(cost.usd.bench.2gb.month = 2*cost.usd.per.gb) %>%
+  mutate(percent.bench.income = 100*cost.usd.bench.2gb.month/gni.month) %>%
+  select(-total.amount, -total.cost)
 ```
 
 
@@ -192,5 +197,10 @@ test <- test %>% mutate(cost.year.usd = cost.usd.per.gb*(365/expiry),
 
 Write data to csv for d3 visualization...
 ```{r}
-write.csv(combine, file = "mobile-world-data.csv", row.names = FALSE)
+ordering <- c("country.name", "country.code", "expiry", "cost.usd.per.gb",
+              "cost.usd.bench.2gb.month", "percent.bench.income", "gni.month")
+
+final_df <- final_df[, ordering]
+
+write.csv(final_df, file = "mobile-world-data.csv", row.names = FALSE)
 ```
