@@ -3,36 +3,181 @@
 <head>
   <meta charset="utf-8">
   <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://d3js.org/queue.v1.min.js"></script>
 
   <style>
-    .countries {
-    /*fill: "red";
-    stroke: #ccc;
-    stroke-width: 2px;*/
-    }
+
+    div.values_buttons {
+        position: fixed;
+        top: 500px;
+        left: 100px;
+        font-size: xx-large;
+      }
+
   </style>
+</head>
+<body>
+  <script type="text/javascript">
+
+    var margin = 75,
+        width = 1800 - margin,
+        height = 900 - margin;
+
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", width + margin)
+        .attr("height", height + margin)
+        .append('g') // container element within svg
+        .attr('class', 'map');
+
+    var projection = d3.geo.equirectangular()
+                      .scale(260)
+                      .translate([width/2, height / 1.8]);
+
+    var path = d3.geo.path().projection(projection);
 
 
-  <script type="text/javascript"> 
+    queue()
+    .defer(d3.json, "https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/world_countries.json")
+    .defer(d3.csv, "https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/mobile-world-data.csv")
+    .await(choromap);
 
 
-    function draw_map(geo_data) {
 
-      "use strict";
-      var margin = 75,
-          width = 1920 - margin,
-          height = 1080 - margin;
+    function choromap(error, world_data, mobile_data) {
 
-      var svg = d3.select("body")
-          .append("svg")
-          .attr("width", width + margin)
-          .attr("height", height + margin)
-          .append('g') // container element within svg
-          .attr('class', 'map');
 
-      var projection = d3.geo.mercator();
-      var path = d3.geo.path().projection(projection);
+      var country_values = {};
+      var schemes = ["cost.usd.per.gb", "percent.bench.income"];
+
+      mobile_data.forEach(function(d) {
+        //debugger;
+        //console.log(d);
+        d['cost.usd.bench.2gb.month'] = +d['cost.usd.bench.2gb.month'];
+        d['cost.usd.per.gb'] = +d['cost.usd.per.gb'];
+        d['expiry'] = +d['expiry'];
+        d['gni.month'] = +d['gni.month'];
+        d['percent.bench.income'] = +d['percent.bench.income'];
+
+        country_values[d['country.code']] = {"percent.bench.income": d['percent.bench.income'],
+                                          "cost.usd.per.gb": d['cost.usd.per.gb']};
+        });
+
+
+      //console.log(schemes);
+      //var value_type = "cost.usd.per.gb";
+      var value_type = "percent.bench.income";
+
+      var max_val = d3.max(mobile_data, function(d) {
+        //debugger;
+        return d[value_type];
+        });
+      //console.log(max_val)
+
+      var color = d3.scale.quantize()
+                    .domain([0, max_val])
+                    .range(["#e3e3e3", "#ffb464", "#fca141", "#fc9120", "#fe8300", "#de7302"]);
+
+
+
       var map = svg.selectAll('path') // creating paths
+                   .data(world_data.features) // data in '.features array'
+                   .enter()
+                   .append('path')
+                   .attr('d', path)
+                   .style('fill', function(d) {
+                      //debugger;
+                      if(d.id in country_values) {
+                        return color(country_values[d.id][value_type]);
+                        } else {return "gray";
+                          };
+                      });
+
+
+      var buttons = d3.select("body")
+                        .append("div")
+                        .attr("class", "values_buttons")
+                        .selectAll("div")
+                        .data(schemes)
+                        .enter()
+                        .append("div")
+                        .text(function(d) {
+                            return d;
+                        });
+
+
+
+      // SOMETHING LIKE forEach elmt in schema: update_map(d{ refelmenthere });
+      function update_map(d) {
+        //debugger;
+        if(d.id in country_values) {
+                        return color(country_values[d.id]["cost.usd.per.gb"]);
+                        } else {return "gray";
+                          };
+
+      }
+
+        /*svg.selectAll('path')
+                 .transition()
+                 .duration(500)
+                 .style('fill', update_map);*/
+
+
+      var delay=1500; //1.5 seconds
+
+        setTimeout(function() {
+
+          svg.selectAll('path')
+                 .transition()
+                 .duration(500)
+                 .style('fill', update_map);
+
+          }, delay); 
+
+
+      /*buttons.on("click", function(d) {
+
+                    d3.select(".years_buttons")
+                      .selectAll("div")
+                      .transition()
+                      .duration(500)
+                      .style("color", "black")
+                      .style("background", "rgb(251, 201, 127)");
+
+                    d3.select(this)
+                      .transition()
+                      .duration(500)
+                      .style("background", "lightBlue")
+                      .style("color", "white");
+                    update(d);*/
+
+                    // SOMETHING LIKE: if this is 'cost.usd...' then update_map_usdpergb()
+                    // else update_map_percent()
+
+
+
+
+
+
+
+    }
+    /*
+    function(d) {
+          //console.log(d);
+          d['cost.usd.bench.2gb.month'] = +d['cost.usd.bench.2gb.month'];
+          d['cost.usd.per.gb'] = +d['cost.usd.per.gb'];
+          d['expiry'] = +d['expiry'];
+          d['gni.month'] = +d['gni.month'];
+          d['percent.bench.income'] = +d['percent.bench.income'];
+          return d;
+          }
+          */
+
+
+
+
+
+      /*var map = svg.selectAll('path') // creating paths
                    .data(geo_data.features) // data in '.features array'
                    .enter()
                    .append('path')
@@ -47,21 +192,26 @@
         var percent_max = d3.max(mobile_data, function(d) {
           return d["percent.bench.income"];
           });
-        console.log(percent_max);
 
-        /*var color = d3.scale.threshold()
-                      .domain([.02, .04, .06, .08, .10])
-                      .range(["#f2f0f7", "#dadaeb", "#bcbddc", "#9e9ac8", "#756bb1", "#54278f"]);*/
-
+        var color = d3.scale.quantize()
+                      .domain([0, percent_max])
+                      .range(["#f2f0f7", "#dadaeb", "#bcbddc", "#9e9ac8", "#756bb1", "#54278f"]);
 
 
+        d3.selectAll(".countries").style("fill",
+          function(d) {
+            return color(d["percent.bench.income"]);
+          });*/
 
 
-      }; // draw_choropleth closure
 
 
 
-      d3.csv("https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/mobile-world-data.csv",
+      //}; // draw_choropleth closure
+
+
+
+      /*d3.csv("https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/mobile-world-data.csv",
         function(d) {
           //console.log(d);
           d['cost.usd.bench.2gb.month'] = +d['cost.usd.bench.2gb.month'];
@@ -71,19 +221,12 @@
           d['percent.bench.income'] = +d['percent.bench.income'];
           return d;
           },
-        draw_choropleth);
+        draw_choropleth);*/
 
 
 
 
-    }; // draw_map closure
-
-    </script>
-  </head>
-<body>
-  <script type="text/javascript">
-  
-  d3.json("https://raw.githubusercontent.com/winkelman/data/master/world_countries.json", draw_map);
+    //}; // draw_map closure
 
   </script>
 </body>
