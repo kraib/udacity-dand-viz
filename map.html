@@ -5,12 +5,19 @@
   <script src="http://d3js.org/d3.v3.min.js"></script>
 
   <style>
+    .countries {
+    /*fill: "red";
+    stroke: #ccc;
+    stroke-width: 2px;*/
+    }
   </style>
+
 
   <script type="text/javascript"> 
 
 
-    function draw(geo_data) {
+    function draw_map(geo_data) {
+
       "use strict";
       var margin = 75,
           width = 1920 - margin,
@@ -26,24 +33,58 @@
       var projection = d3.geo.mercator();
       var path = d3.geo.path().projection(projection);
       var map = svg.selectAll('path') // creating paths
-                   .data(geo_data.features) // data in features
+                   .data(geo_data.features) // data in '.features array'
                    .enter()
                    .append('path')
-                   .attr('d', path); //the d attribute of the svg element should contain the instructions for drawing. it is set to the path variable/function which takes the features array of an object in geo_data and processes it to get the draw instructions.
+                   .attr('class', 'countries')
+                   .attr('d', path);
 
 
-    };
+      function draw_choropleth(mobile_data) {
+
+        //console.log(mobile_data)
+
+        var percent_max = d3.max(mobile_data, function(d) {
+          return d["percent.bench.income"];
+          });
+        console.log(percent_max);
+
+        /*var color = d3.scale.threshold()
+                      .domain([.02, .04, .06, .08, .10])
+                      .range(["#f2f0f7", "#dadaeb", "#bcbddc", "#9e9ac8", "#756bb1", "#54278f"]);*/
+
+
+
+
+
+      }; // draw_choropleth closure
+
+
+
+      d3.csv("https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/mobile-world-data.csv",
+        function(d) {
+          //console.log(d);
+          d['cost.usd.bench.2gb.month'] = +d['cost.usd.bench.2gb.month'];
+          d['cost.usd.per.gb'] = +d['cost.usd.per.gb'];
+          d['expiry'] = +d['expiry'];
+          d['gni.month'] = +d['gni.month'];
+          d['percent.bench.income'] = +d['percent.bench.income'];
+          return d;
+          },
+        draw_choropleth);
+
+
+
+
+    }; // draw_map closure
+
     </script>
   </head>
 <body>
   <script type="text/javascript">
-  /*
-    Use D3 to load the GeoJSON file
-    */
-    
+  
+  d3.json("https://raw.githubusercontent.com/winkelman/data/master/world_countries.json", draw_map);
 
-
-d3.json("https://raw.githubusercontent.com/winkelman/data/master/world_countries.json", draw);
   </script>
 </body>
 </html>

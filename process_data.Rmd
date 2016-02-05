@@ -33,6 +33,12 @@ mobile$Code <- countrycode(mobile$Country, "country.name", "wb")
 
 mobile <- mobile %>% select(Country, Code, Usage.allowance, Allowance.units,
                             Validity..days., Cost, Tarrif.Currecy)
+
+# at the end of this script before writing to csv,
+# we found out that Togo's currency code is wrong messing up a few values...
+mobile$Tarrif.Currecy <- as.character(mobile$Tarrif.Currecy)
+index <- mobile$Country == "Togo"
+mobile$Tarrif.Currecy[index] <- "XOF"
 ```
 
 
@@ -177,7 +183,7 @@ Now let's group by country and plan/expiry type to get total data amount and tot
 ```{r}
 # need to groupby 'gni.month' and 'country.code' here or it gets removed in the chain
 final_df <- combine %>%
-  group_by(country.name, expiry, country.code, gni.month) %>%
+  group_by(country.name, expiry, country.code, gni.month, currency.code) %>%
   summarise(total.amount = sum(data.amount), total.cost = sum(cost.usd)) %>%
   mutate(cost.usd.per.gb = total.cost/total.amount)
 ```
@@ -192,6 +198,26 @@ final_df <- final_df %>%
   select(-total.amount, -total.cost)
 ```
 
+
+
+Let's make sure our relative measure domain is reasonable for a choropleth map...
+```{r}
+summary(final_df)
+ggplot(aes(x = percent.bench.income), data = final_df) +
+  geom_histogram()
+# we have one major outlier, let's see all high values...
+check <- subset(final_df, percent.bench.income > 50)
+```
+
+
+
+Looking at some of the costs in the original mobile data it seems there may have been some bad data entry so I'm going to exclude anything above %50...
+```{r}
+final_df <- subset(final_df, percent.bench.income <= 50)
+summary(final_df)
+ggplot(aes(x = percent.bench.income), data = final_df) +
+  geom_histogram()
+```
 
 
 
