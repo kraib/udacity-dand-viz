@@ -8,8 +8,9 @@
   <style>
 
     div.type-buttons {
-        position: fixed;
-        top: 450px;
+        /*position: fixed;*/
+        position:relative;
+        top: 50px;
         left: 100px;
         font-size: xx-large;
         border: 5px;
@@ -17,8 +18,9 @@
       }
 
       div.metric-buttons {
-        position: fixed;
-        top: 600px;
+        /*position: fixed;*/
+        position:relative;
+        top: 6px;
         left: 100px;
         font-size: xx-large;
         padding: 5px;
@@ -47,6 +49,11 @@
 
     var path = d3.geo.path().projection(projection);
 
+    // need these to persist for button selection
+    var expiry = 7;
+    var comparison = "costPerGB";
+
+
 
     queue()
     .defer(d3.json, "https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/world_countries.json")
@@ -59,6 +66,7 @@
 
 
     function callback(error, worldData, mobileData) {
+
 
       // get list of country codes with country name (try and make this unique later?)
       var countries = mobileData.map(
@@ -110,26 +118,8 @@
             }
           }
         }
-      }
+      };
 
-
-
-                    // check if plan duration exists
-                    /*
-
-                    var hasPlan = (duration in countryData[countryCode]['plan']);
-                    if(hasPlan) {
-                      var fillValue = countryData[countryCode]['plan'][duration][stat];
-                      return color(fillValue);
-                      } else {
-                        return "green";
-                      }
-                    }
-
-        debugger;
-      });
-      //debugger;
-                  */
 
 
       // create map
@@ -139,172 +129,85 @@
                    .append('path')
                    .attr('d', path)
                    .on("click", function(d) {
-                    debugger;
-                    if(d.mobile !== undefined){
+                    if(d.mobile != undefined){
                       for(plan in d.mobile){
-                        
+                        for(data in d.mobile[plan]){
+                          //debugger;
+                          console.log("in " + d.properties.name + " a " + plan + " day plan cost " + d.mobile[plan][data] + " " + data);
+                        }
                       }
-                      console.log(d.mobile);
-
                     }
                    }); // anon attr closure
 
 
 
-      // create map
-      /*
-      var map = svg.selectAll('path') // creating paths
-                   .data(worldData.features) // data in '.features array'
-                   .enter()
-                   .append('path')
-                   .attr('d', path)
-                   .on("click", function(d) {
-                    var countryCode = d.id;
-                    if(countryCode in countryData){
-                      for (plan in countryData[countryCode]['plan']) {
-                        for (data in countryData[countryCode]['plan'][plan]){
-                          console.log(plan + " day plan cost " + countryData[countryCode]['plan'][plan][data] + " " + data);
-                        };
-                      };
-                    }
-                  }); // anon attr closure
-*/
-
-
 
 
       // apply choropleth
-      function updateSelection(duration, stat) {
+      function updateSelection(scheme) {
 
-        // make color scale here based upon range of values within a given plan and stat type...
+        duration = scheme[0];
+        metric = scheme[1];
 
-        // first get list of values from countryData to get max and min
-        var selectionValues = []
-        for (var country in countryData) {
 
-          // CHECK FIRST TO SEE IF PLAN DATA EXISTS, NOT EVERY COUNTRY HAS DATA OR EVERY TYPE
-          var hasPlan = (duration in countryData[country]['plan']);
-          if(hasPlan){
-            //debugger;
-            value = countryData[country]['plan'][duration][stat];
-            selectionValues.push(value);
+
+        // get values of interest across all countries for the particular duration and metric
+        var targets = d3.selectAll("path")[0];
+        var values = [];
+
+        for(var index = 0; index < targets.length; index++){
+
+          //debugger;
+          var hasMobile = ('mobile' in targets[index].__data__)
+          if(hasMobile){
+
+            var plans = targets[index].__data__.mobile;
+            var hasData = (duration in plans);
+
+            //console.log(index + " " + hasData);
+            if(hasData){
+
+              values.push(plans[duration][metric]);
+            }
           }
-        };
+        }
 
-        // get min and max for color scale
-        valuesDomain = d3.extent(selectionValues);
+        // get domain of values
+        var domain = d3.extent(values);
 
+        // color scale
         var color = d3.scale.quantize()
-                    .domain(valuesDomain)
+                    .domain(domain)
                     .range(["#e3e3e3", "#ffb464", "#fca141", "#fc9120", "#fe8300", "#de7302"]);
 
+        //debugger;
 
-        // create function to check if country in worldData is in countryData and plan exists to make things easier?
-        /*function checkCountry(country, plan, metric) {
-          if(country in countryData){
-                    var hasPlan = (duration in countryData[countryCode]['plan']);
-
-        }*/
-
-
-        // MAKE SURE THAT WHEN REFERENCING VALUES IN THE COUNTRYDATA THAT THEY EXIST
-        // NOT EVERY COUNTRY HAS DATA OR EVERY TYPE OF PLAN VALUE OF 1, 7, OR 30
+        // fill in paths with color
         svg.selectAll('path')
                  .transition()
                  .duration(500)
                  .style('fill', function(d){
-                  var countryCode = d['id'];
 
-                  // check if countryCode in countryData
-                  if(countryCode in countryData){
-                    //debugger;
-
-                    // check if plan duration exists
-                    var hasPlan = (duration in countryData[countryCode]['plan']);
-                    if(hasPlan) {
-                      var fillValue = countryData[countryCode]['plan'][duration][stat];
-                      return color(fillValue);
-                      } else {
-                        return "green";
-                      }
+                  var hasMobile = ('mobile' in d)
+                  if(hasMobile){
+                    var hasData = (duration in d.mobile);
+                    if(hasData){
+                      //debugger;
+                      return color(d.mobile[duration][metric]);
                     }
-                  }) // anon style closure
-                 // give each country a proper name DON'T NEED THIS!!!!
-                  .attr('id', function(d){
-                    if(d['id'] in countryData){
-                      return countryData[d['id']]['name'];
-                    }
-                  }) // anon attr closure
-                  .attr('value', function(d){
-                    if(d['id'] in countryData) {
-                      var hasVal = (duration in countryData[d['id']]['plan']);
-                      if(hasVal) {
-                        //debugger;
-                        var value = countryData[d['id']]['plan'][duration][stat];
-                        return value;
-                      }
-                    }
-                  }) // anon attr closure
-                  // add country class
-                  .attr('class', function(d){
-                    if(d['id'] in countryData) {
-                      var hasVal = (duration in countryData[d['id']]['plan']);
-                      if(hasVal) {
-                        //debugger;
-                        var value = countryData[d['id']]['plan'][duration][stat];
-                        return 'data';
-                      }
-                    }
-                  });
-
-
-
-        /*var highlightCountries = svg.selectAll(".data")
-                  .on("mouseover", function(d){
-                    debugger;
-                    d3.select(this).style(("fill", "blue"));
-                  });*/
-
-
-
-                 /*.on("mouseover", function(d) {
-                  //debugger;
-                    return d3.select(this).style("opacity", 3);
-                 });*/
-
-                 /*, function(d) {
-                    d3.select(this).transition().duration(300).style("opacity", 1);
-                    div.transition().duration(300).style("opacity", 1)
-                    div.text(d['id'] + " : " + countryData[d.id].name).style("left", (d3.event.pageX) + "px")
-                              .style("top", (d3.event.pageY -30) + "px");
-                });*/
-
-
-
-
+                  } else{return "gray"}
+                 });
 
 
       } // updateSelection closure
 
-      updateSelection(1, 'costPerGB');
 
-      /*d3.selectAll("path")
-        .on("click", function(d) {
-          //debugger;
-          var countryCode = d['id'];
-          if(countryCode in countryData){
-                      return console.log(countryData[countryCode]['plan']);;
-                      } else {
-                        return console.log("happy");;
-                      }
-                    });*/
-
+      updateSelection([1, 'costPerGB']);
 
 
       // looking at the valid arguments for updateSelection we can see what data we want in the buttons
       types = [1, 7, 30]
       metrics = ['costPerGB', 'avgMonthCost', 'avgMonthIncome', 'percentOfIncome']
-
       var typeButtons = d3.select("body")
                         .append("div")
                         .attr("class", "type-buttons")
@@ -326,81 +229,18 @@
                         .text(function(d) {
                             return d;
                         });
-        
 
+      typeButtons.on("click", function(d) {
 
+        debugger;
 
+        //updateSelection([1, 'costPerGB'])
 
-      } // callback closure
-
-
-
-
-
-
-
-
-/*
-      //console.log(schemes);
-      //var value_type = "cost.usd.per.gb";
-      var value_type = "percent.bench.income";
-
-      var max_val = d3.max(mobileData, function(d) {
-        //debugger;
-        return d[value_type];
         });
-      //console.log(max_val)
-
-      var color = d3.scale.quantize()
-                    .domain([0, max_val])
-                    .range(["#e3e3e3", "#ffb464", "#fca141", "#fc9120", "#fe8300", "#de7302"]);
 
 
 
-      var map = svg.selectAll('path') // creating paths
-                   .data(worldData.features) // data in '.features array'
-                   .enter()
-                   .append('path')
-                   .attr('d', path)
-                   .style('fill', function(d) {
-                      //debugger;
-                      if(d.id in countryData) {
-                        return color(countryData[d.id][value_type]);
-                        } else {return "gray";
-                          };
-                      });
-
-
-      var buttons = d3.select("body")
-                        .append("div")
-                        .attr("class", "values_buttons")
-                        .selectAll("div")
-                        .data(schemes)
-                        .enter()
-                        .append("div")
-                        .text(function(d) {
-                            return d;
-                        });
-
-
-
-      // SOMETHING LIKE forEach elmt in schema: update_map(d{ refelmenthere });
-      function update_map(d) {
-        //debugger;
-        if(d.id in countryData) {
-                        return color(countryData[d.id]["cost.usd.per.gb"]);
-                        } else {return "gray";
-                          };
-
-      }
-
-        /*svg.selectAll('path')
-                 .transition()
-                 .duration(500)
-                 .style('fill', update_map);*/
-
-
-      /*var delay=1500; //1.5 seconds
+        /*var delay=1500; //1.5 seconds
 
         setTimeout(function() {
 
@@ -412,84 +252,10 @@
           }, delay);*/
 
 
-      /*buttons.on("click", function(d) {
-
-                    d3.select(".years_buttons")
-                      .selectAll("div")
-                      .transition()
-                      .duration(500)
-                      .style("color", "black")
-                      .style("background", "rgb(251, 201, 127)");
-
-                    d3.select(this)
-                      .transition()
-                      .duration(500)
-                      .style("background", "lightBlue")
-                      .style("color", "white");
-                    update(d);*/
-
-                    // SOMETHING LIKE: if this is 'cost.usd...' then update_map_usdpergb()
-                    // else update_map_percent()
 
 
 
-
-
-
-    
-
-
-      /*var map = svg.selectAll('path') // creating paths
-                   .data(geo_data.features) // data in '.features array'
-                   .enter()
-                   .append('path')
-                   .attr('class', 'countries')
-                   .attr('d', path);
-
-
-      function draw_choropleth(mobileData) {
-
-        //console.log(mobileData)
-
-        var percent_max = d3.max(mobileData, function(d) {
-          return d["percent.bench.income"];
-          });
-
-        var color = d3.scale.quantize()
-                      .domain([0, percent_max])
-                      .range(["#f2f0f7", "#dadaeb", "#bcbddc", "#9e9ac8", "#756bb1", "#54278f"]);
-
-
-        d3.selectAll(".countries").style("fill",
-          function(d) {
-            return color(d["percent.bench.income"]);
-          });*/
-
-
-
-
-
-      //}; // draw_choropleth closure
-
-
-
-      /*d3.csv("https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/mobile-world-data.csv",
-        function(d) {
-          //console.log(d);
-          d['cost.usd.bench.2gb.month'] = +d['cost.usd.bench.2gb.month'];
-          d['cost.usd.per.gb'] = +d['cost.usd.per.gb'];
-          d['expiry'] = +d['expiry'];
-          d['gni.month'] = +d['gni.month'];
-          d['percent.bench.income'] = +d['percent.bench.income'];
-          return d;
-          },
-        draw_choropleth);*/
-
-
-
-
-    //}; // draw_map closure
-
+    } // callback closure
 
 
   </script>
