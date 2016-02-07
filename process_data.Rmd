@@ -15,7 +15,7 @@ library(countrycode)
 
 
 ```{r, echo=FALSE}
-setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project"))
+#setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project"))
 getwd()
 # suppress scientific notation just a hack i guess
 options(scipen=999)
@@ -131,6 +131,7 @@ str(combine)
 # of the factor. we need as character before numeric to get the value.
 combine$expiry <- as.numeric(as.character(combine$expiry))
 combine$cost.local <- as.numeric(as.character(combine$cost.local))
+#combine$cost.local <- signif(combine$cost.local, digits = 3)
 
 # lost 1 data point to coercion
 combine <- na.omit(combine)

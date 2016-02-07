@@ -4,60 +4,84 @@
   <meta charset="utf-8">
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="http://d3js.org/queue.v1.min.js"></script>
-  <script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
-  <script src = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  <script src="colorbrewer.min.js"></script>
 
   <style>
 
-  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+     h2 {
+        text-align: center;
+        color: black;
+        font-size: 40px;
+      }
 
     div.type-buttons {
-        /*position: fixed;*/
-        position:relative;
-        top: 50px;
+        position: fixed;
+        top: 550px;
         left: 100px;
-        font-size: x-large;
-        border: 5px;
-        background-color: #9ec9ff;
+        font-size: large;
       }
 
-      div.metric-buttons {
-        /*position: fixed;*/
-        position:relative;
-        top: 60px;
-        left: 100px;
-        font-size: x-large;
-        padding: 5px;
-        background-color: #9ec9ff;
+    div.type-buttons div {
+      font-weight: bold;
+      text-align: center;
+      border-radius: 10px;
+      background-color: LightGray;
+      padding: 3px;
+      margin: 7px;
+    }
+
+    div.metric-buttons {
+      position: fixed;
+      top: 700px;
+      left: 100px;
+      font-size: large;
+    }
+
+    div.metric-buttons div {
+      font-weight: bold;
+      text-align: center;
+      border-radius: 10px;
+      background-color: LightGray;
+      padding: 3px;
+      margin: 7px;
+    }
+
+    
+    .country:hover {
+        fill: #7acd6e;
       }
+    
+
+
+    .d3-tip {
+      line-height: 1;
+      font-weight: bold;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      border-radius: 2px;
+    }
+
 
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-lg-1" id="button-container">
-      </div>
-      <div class="col-lg-11" id="svg-container">
-      </div>
-    </div>
-  </div>
 </body>
 </html>
   <script type="text/javascript">
+
+    var description = d3.select("body").append("h2").text("Global Mobile Data Costs").attr("class", "description");
 
     var margin = 75,
         width = 1800 - margin,
         height = 900 - margin;
 
-    var svg = d3.select("#svg-container")
+    var svg = d3.select("body")
         .append("svg")
         .attr("width", width + margin)
         .attr("height", height + margin)
-        .append('g') // container element within svg
-        .attr("class", "img-fluid");
-
+        .append('g'); // container element within svg
 
     var projection = d3.geo.mercator()
                       .scale(260)
@@ -65,12 +89,16 @@
 
     var path = d3.geo.path().projection(projection);
 
-    // need these to persist for button selection
-    var expiry = 7;
-    var comparison = "costPerGB";
+    // these need to be global for button selection to persist
+    var expiry;
+    var comparison;
 
+    // oldskool tooltip
+    var tooltip = d3.select("body").append("div")
+                  .attr("class", "tooltip")
+                  .style("opacity", 0);
 
-
+    // load data and callback
     queue()
     .defer(d3.json, "https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/world_countries.json")
     .defer(d3.csv, "https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/mobile-world-data.csv")
@@ -78,23 +106,19 @@
 
 
 
-    // USE JAVA VARIABLE RULES THROUGHOUT!  var thisOtherThing = 10;
-
-
     function callback(error, worldData, mobileData) {
 
-
-      // get list of country codes with country name (try and make this unique later?)
+      // get list of country codes from mobile data (list is redundant, make unique later?)
       var countries = mobileData.map(
-        function(d) {return [d['country.code'], d['country.name']];}
+        function(d) {return d['country.code'];}
         );
 
-      // make object of country data by country code with name field and empty plan object to start...
+      // make country data object by country codes, 
+      // name field and empty plan object to start...
       var countryData = {};
       countries.forEach(function(d) {
-        countryData[d[0]] = {"name": d[1], "plan": {}};
+        countryData[d] = {'plan': {}};
       });
-
 
       // construct country data object
       mobileData.forEach(function(d) {
@@ -109,10 +133,10 @@
         //debugger;
 
         // CAREFUL WITH THE SYNTAX FOR CREATING ANOTHER OBJECT WITHIN THE COUNTRY DATA PLAN OBJECT (SAME AS PYTHON DICTIONARY)
-        countryData[d['country.code']]['plan'][d.expiry] = {'costPerGB': d['cost.usd.per.gb'],
-                                                    'avgMonthCost': d['cost.usd.bench.2gb.month'],
-                                                    'avgMonthIncome': d['gni.month'],
-                                                    'percentOfIncome': d['percent.bench.income']
+        countryData[d['country.code']]["gnipcmonthly"] = d['gni.month'];
+        countryData[d['country.code']]['plan'][d.expiry] = {'Cost Per Gigabyte': d['cost.usd.per.gb'],
+                                                    'Average Monthly Cost': d['cost.usd.bench.2gb.month'],
+                                                    'Cost As Percent of Income (2GB/Month)': d['percent.bench.income']
                                                     };
         }); // mobileData iteration closure
 
@@ -125,9 +149,10 @@
 
         if(countryCode in countryData){
           worldData.features[index]['mobile'] = {};
+          worldData.features[index]['monthlyIncome'] = countryData[countryCode]["gnipcmonthly"];
 
           for(plan in countryData[countryCode]['plan']){
-            worldData.features[index]['mobile'][plan] = {};
+            worldData.features[index]['mobile'][plan] = countryData[countryCode]['plan'][plan];
 
             for(data in countryData[countryCode]['plan'][plan]){
               worldData.features[index]['mobile'][plan][data] = countryData[countryCode]['plan'][plan][data];
@@ -136,7 +161,33 @@
         }
       };
 
+      tip = d3.tip().attr('class', 'd3-tip')
+                    .html(function(d) {
+                      //debugger;
+                      var content = '<p>' + d.properties.name + '</p>';
+                      if(d.monthlyIncome != undefined) {
+                        content += '<p>Average Monthly Income: ' + d.monthlyIncome + '</p>';
+                        for(plan in d.mobile){
+                          for(data in d.mobile[plan]){
+                            if(data == 'Cost Per Gigabyte') {
+                              content += "<p>" + plan + "day " + data + ": " + d.mobile[plan][data] + "</p>";
+                            }
+                            if(data == 'Average Monthly Cost') {
+                              content += "<p>" + plan + "day " + data + ": " + d.mobile[plan][data] + " (2GB)" + "</p>";
+                            }
+                            if(data == 'Cost As Percent of Income (2GB/Month)') {
+                              content += "<p>" + plan + "day " + data + ": " + d.mobile[plan][data] + "</p>";
+                            }
+                          }
+                        }
+                      } else {
+                        content += " (no data)";
+                        }
+                      return content;
+                    });
 
+      svg.call(tip);
+      tip.direction('e');
 
       // create map
       var map = svg.selectAll('path') // creating paths
@@ -144,7 +195,8 @@
                    .enter()
                    .append('path')
                    .attr('d', path)
-                   .on("click", function(d) {
+                   .attr("class", "country")
+                   /*.on("click", function(d) {
                     if(d.mobile != undefined){
                       for(plan in d.mobile){
                         for(data in d.mobile[plan]){
@@ -153,9 +205,9 @@
                         }
                       }
                     }
-                   }); // anon attr closure
-
-
+                   })*/ // anon attr closure
+                   .on('mouseover', tip.show)
+                   .on('mouseout', tip.hide);
 
 
 
@@ -166,8 +218,9 @@
         metric = scheme[1];
 
 
+        // CREATE COLOR SCALE
 
-        // get values of interest across all countries for the particular duration and metric
+        // first get values of interest across all countries for the particular duration and metric
         var targets = d3.selectAll("path")[0];
         var values = [];
 
@@ -192,9 +245,9 @@
         var domain = d3.extent(values);
 
         // color scale
-        var color = d3.scale.quantize()
+        var color = d3.scale.quantile() //quantize()
                     .domain(domain)
-                    .range(["#e3e3e3", "#ffb464", "#fca141", "#fc9120", "#fe8300", "#de7302"]);
+                    .range(colorbrewer['OrRd']['9'].slice(2));
 
         //debugger;
 
@@ -203,57 +256,55 @@
                  .transition()
                  .duration(500)
                  .style('fill', function(d){
-
-                  var hasMobile = ('mobile' in d)
+                  //debugger;
+                  var hasMobile = ('mobile' in d);
                   if(hasMobile){
                     var hasData = (duration in d.mobile);
                     if(hasData){
                       //debugger;
                       return color(d.mobile[duration][metric]);
-                    }
-                  } else{return "gray"}
+                    } else{return "LightGray"}
+                  } else{return "LightGray"}
                  });
 
 
       } // updateSelection closure
 
-      updateSelection([7, 'percentOfIncome']);
+      //updateSelection([30, 'Cost As Percent of Income (2GB/Month)']);
 
 
 
       // test updateselection
-      /*updateSelection([1, 'costPerGB']);
+      /*var delay=1500; //1.5 seconds
+      setTimeout(function(){updateSelection([1, 'Cost Per Gigabyte']);}, delay);
+      setTimeout(function(){updateSelection([7, 'Cost Per Gigabyte']);}, delay);
+      setTimeout(function(){updateSelection([30, 'Average Monthly Cost']);}, delay);
+      setTimeout(function(){updateSelection([1, 'Average Monthly Cost']);}, delay);*/
 
-      var delay=1500; //1.5 seconds
-        setTimeout(function() {
-          svg.selectAll('path')
-                 .transition()
-                 .duration(500)
-                 .style('fill', updateSelection([7, 'percentOfIncome']));
-          }, delay);*/
-
-
-
-
+      
 
       // looking at the valid arguments for updateSelection we can see what data we want in the buttons
-      types = [1, 7, 30]
-      metrics = ['costPerGB', 'avgMonthCost', 'avgMonthIncome', 'percentOfIncome']
-      var typeButtons = d3.select("#button-container")
+
+      types = [[1, "Daily Expiry"], [7, "Weekly Expiry"], [30, "Monthly Expiry"]]
+      // exclude 'Average Monthly Cost' since this won't change the choropleth any and 'Average Monthly Income' since no change over expiry
+      metrics = ['Cost Per Gigabyte', 'Cost As Percent of Income (2GB/Month)']
+
+      var typeButtons = d3.select("body")
                         .append("div")
-                        .attr("class", "btn-group-vertical")
                         .attr("class", "type-buttons")
                         .selectAll("div")
                         .data(types)
                         .enter()
                         .append("div")
+                        .attr('data', function(d) {
+                            return d[0];
+                        })
                         .text(function(d) {
-                            return d;
+                            return d[1];
                         });
 
-      var metricButtons = d3.select("#button-container")
+      var metricButtons = d3.select("body")
                         .append("div")
-                        .attr("class", "btn-group-vertical")
                         .attr("class", "metric-buttons")
                         .selectAll("div")
                         .data(metrics)
@@ -264,10 +315,54 @@
                         });
 
 
-      typeButtons.on("click", function(d) {
-        debugger;
-        //updateSelection([1, 'costPerGB'])
 
+
+
+
+      typeButtons.on("click", function(d) {
+
+        d3.select(".type-buttons")
+                      .selectAll("div")
+                      .transition()
+                      .duration(500)
+                      .style("background", "LightGray")
+                      .style("color", "black");
+
+        d3.select(this)
+                      .transition()
+                      .duration(500)
+                      .style("background", "#a7f4cc")
+                      .style("color", "white");
+
+        expiry = d3.select(this).attr("data");
+        //console.log(expiry);
+        //console.log(comparison);
+        updateSelection([expiry, comparison]);
+        });
+
+
+
+
+
+      metricButtons.on("click", function(d) {
+
+        d3.select(".metric-buttons")
+                      .selectAll("div")
+                      .transition()
+                      .duration(500)
+                      .style("background", "LightGray")
+                      .style("color", "black");
+
+        d3.select(this)
+                      .transition()
+                      .duration(500)
+                      .style("background", "#a7f4cc")
+                      .style("color", "white");
+
+        comparison = d3.select(this).text();
+        //console.log(expiry);
+        //console.log(comparison);
+        updateSelection([expiry, comparison]);
         });
 
 

@@ -1,0 +1,11 @@
+references
+
+http://www.cartographicperspectives.org/index.php/journal/article/view/cp78-sack-et-al/1359
+
+http://stackoverflow.com/questions/4964456/make-javascript-do-list-comprehension
+
+https://github.com/mbostock/d3/wiki/Arrays
+
+http://stackoverflow.com/questions/27509/detecting-an-undefined-object-property
+
+https://suffenus.wordpress.com/2014/01/07/making-interactive-maps-with-d3-for-total-beginners/
