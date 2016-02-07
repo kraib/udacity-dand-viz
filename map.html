@@ -4,15 +4,20 @@
   <meta charset="utf-8">
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="http://d3js.org/queue.v1.min.js"></script>
+  <script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-beta1/jquery.min.js"></script>
+  <script src = "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 
   <style>
+
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 
     div.type-buttons {
         /*position: fixed;*/
         position:relative;
         top: 50px;
         left: 100px;
-        font-size: xx-large;
+        font-size: x-large;
         border: 5px;
         background-color: #9ec9ff;
       }
@@ -20,9 +25,9 @@
       div.metric-buttons {
         /*position: fixed;*/
         position:relative;
-        top: 6px;
+        top: 60px;
         left: 100px;
-        font-size: xx-large;
+        font-size: x-large;
         padding: 5px;
         background-color: #9ec9ff;
       }
@@ -30,20 +35,31 @@
   </style>
 </head>
 <body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-1" id="button-container">
+      </div>
+      <div class="col-lg-11" id="svg-container">
+      </div>
+    </div>
+  </div>
+</body>
+</html>
   <script type="text/javascript">
 
     var margin = 75,
         width = 1800 - margin,
         height = 900 - margin;
 
-    var svg = d3.select("body")
+    var svg = d3.select("#svg-container")
         .append("svg")
         .attr("width", width + margin)
         .attr("height", height + margin)
         .append('g') // container element within svg
-        .attr('class', 'map');
+        .attr("class", "img-fluid");
 
-    var projection = d3.geo.equirectangular()
+
+    var projection = d3.geo.mercator()
                       .scale(260)
                       .translate([width/2, height / 1.8]);
 
@@ -201,15 +217,31 @@
 
       } // updateSelection closure
 
+      updateSelection([7, 'percentOfIncome']);
 
-      updateSelection([1, 'costPerGB']);
+
+
+      // test updateselection
+      /*updateSelection([1, 'costPerGB']);
+
+      var delay=1500; //1.5 seconds
+        setTimeout(function() {
+          svg.selectAll('path')
+                 .transition()
+                 .duration(500)
+                 .style('fill', updateSelection([7, 'percentOfIncome']));
+          }, delay);*/
+
+
+
 
 
       // looking at the valid arguments for updateSelection we can see what data we want in the buttons
       types = [1, 7, 30]
       metrics = ['costPerGB', 'avgMonthCost', 'avgMonthIncome', 'percentOfIncome']
-      var typeButtons = d3.select("body")
+      var typeButtons = d3.select("#button-container")
                         .append("div")
+                        .attr("class", "btn-group-vertical")
                         .attr("class", "type-buttons")
                         .selectAll("div")
                         .data(types)
@@ -219,8 +251,9 @@
                             return d;
                         });
 
-      var metricButtons = d3.select("body")
+      var metricButtons = d3.select("#button-container")
                         .append("div")
+                        .attr("class", "btn-group-vertical")
                         .attr("class", "metric-buttons")
                         .selectAll("div")
                         .data(metrics)
@@ -230,26 +263,12 @@
                             return d;
                         });
 
+
       typeButtons.on("click", function(d) {
-
         debugger;
-
         //updateSelection([1, 'costPerGB'])
 
         });
-
-
-
-        /*var delay=1500; //1.5 seconds
-
-        setTimeout(function() {
-
-          svg.selectAll('path')
-                 .transition()
-                 .duration(500)
-                 .style('fill', update_map);
-
-          }, delay);*/
 
 
 
@@ -259,5 +278,3 @@
 
 
   </script>
-</body>
-</html>
