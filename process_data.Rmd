@@ -24,12 +24,15 @@ options(scipen=999)
 
 
 
-Let's add country code to the mobile data so that we can merge the GNI data by a common value later. Also, we'll keep only the relevant features.
+Let's add country code to the mobile data so that we can merge the GNI data by a common value later. We'll exlclude plans that include voice and text and keep only the relevant features.
 ```{r}
 mobile <- read.csv("mobile-parameters-q2-2015-updated.csv",
                    header = TRUE, sep = ",")
 
 mobile$Code <- countrycode(mobile$Country, "country.name", "wb")
+
+# getting data only plans
+mobile <- subset(mobile, Voice...SMS.Included. == "No")
 
 mobile <- mobile %>% select(Country, Code, Usage.allowance, Allowance.units,
                             Validity..days., Cost, Tarrif.Currecy)
@@ -183,10 +186,13 @@ combine[mb, ]$data.unit <- "GB"
 Now let's group by country and plan/expiry type to get total data amount and total cost for each plan duration. From here we can get an average cost in USD per GB for each plan duration for a given country.
 ```{r}
 # need to groupby 'gni.month' and 'country.code' here or it gets removed in the chain
+
 final_df <- combine %>%
   group_by(country.name, expiry, country.code, gni.month, currency.code) %>%
-  summarise(total.amount = sum(data.amount), total.cost = sum(cost.usd)) %>%
-  mutate(cost.usd.per.gb = total.cost/total.amount)
+  summarise(total.amount = sum(data.amount),
+            total.cost = sum(cost.usd),
+            total.plans = n()) %>%
+  mutate(cost.usd.per.gb = total.cost/total.amount/total.plans)
 ```
 
 
@@ -196,7 +202,7 @@ Some kind of benchmark usage cost would be good to establish a typical monthly b
 final_df <- final_df %>%
   mutate(cost.usd.bench.2gb.month = 2*cost.usd.per.gb) %>%
   mutate(percent.bench.income = 100*cost.usd.bench.2gb.month/gni.month) %>%
-  select(-total.amount, -total.cost)
+  select(-total.amount, -total.cost, -total.plans)
 ```
 
 
@@ -204,19 +210,19 @@ final_df <- final_df %>%
 Let's make sure our relative measure domain is reasonable for a choropleth map...
 ```{r}
 summary(final_df)
-ggplot(aes(x = percent.bench.income), data = final_df) +
+ggplot(aes(x = cost.usd.per.gb), data = final_df) +
   geom_histogram()
-# we have one major outlier, let's see all high values...
-check <- subset(final_df, percent.bench.income > 50)
+# we have some major outliers, let's see all high values...
+check <- subset(final_df, cost.usd.per.gb > 40)
 ```
 
 
 
-Looking at some of the costs in the original mobile data it seems there may have been some bad data entry so I'm going to exclude anything above %50...
+Looking at some of the costs in the original mobile data it seems there may have been some bad data entry so I'm going to exclude anything above $30/GB...
 ```{r}
-final_df <- subset(final_df, percent.bench.income <= 50)
+final_df <- subset(final_df, cost.usd.per.gb <= 30)
 summary(final_df)
-ggplot(aes(x = percent.bench.income), data = final_df) +
+ggplot(aes(x = cost.usd.per.gb), data = final_df) +
   geom_histogram()
 ```
 
