@@ -6,59 +6,73 @@ output: html_document
 
 
 Package loading...
-```{r}
+```{r packages}
 library(ggplot2)
 library(dplyr)
 library(countrycode)
 ```
 
 
-
-```{r, echo=FALSE}
+Setting local directory and suppressing scientific notation of numbers..
+```{r set_directory, echo=FALSE}
 #setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project"))
 getwd()
-# suppress scientific notation just a hack i guess
-options(scipen=999)
 #list.files()
+# suppress scientific notation, just a hack i guess...
+options(scipen=999)
 ```
 
 
 
-Let's add country code to the mobile data so that we can merge the GNI data by a common value later. We'll exlclude plans that include voice and text and keep only the relevant features.
-```{r}
+
+
+Let's import the mobile data set and add country code so that we can merge the GNI data by a common value later.
+```{r mobile_import}
 mobile <- read.csv("mobile-parameters-q2-2015-updated.csv",
-                   header = TRUE, sep = ",")
+                   header = TRUE, sep = ",", strip.white = TRUE)
 
 mobile$Code <- countrycode(mobile$Country, "country.name", "wb")
+```
 
-# getting data only plans
-mobile <- subset(mobile, Voice...SMS.Included. == "No")
 
-mobile <- mobile %>% select(Country, Code, Usage.allowance, Allowance.units,
-                            Validity..days., Cost, Tarrif.Currecy)
-
-# at the end of this script before writing to csv,
-# we found out that Togo's currency code is wrong messing up a few values...
+After combining data sets later on in this script, we found out that several country's currency codes are wrong...
+```{r mobile_fix_currency_codes}
 mobile$Tarrif.Currecy <- as.character(mobile$Tarrif.Currecy)
+
+index <- mobile$Country == "Mali"
+mobile$Tarrif.Currecy[index] <- "XOF"
+
 index <- mobile$Country == "Togo"
 mobile$Tarrif.Currecy[index] <- "XOF"
+
+index <- mobile$Country == "Benin"
+mobile$Tarrif.Currecy[index] <- "XOF"
+
+index <- mobile$Country == "Burkina Faso"
+mobile$Tarrif.Currecy[index] <- "XOF"
+
+index <- mobile$Country == "Timor-Leste"
+mobile$Tarrif.Currecy[index] <- "USD"
+
+# Below changes done manually while inspecting currency codes for validity...
+
+#index <- mobile$Country == "Aruba"
+#mobile$Tarrif.Currecy[index] <- "AWG"
+#index <- mobile$Country == "Barbados"
+#mobile$Tarrif.Currecy[index] <- "BBD"
+#index <- mobile$Country == "Ghana"
+#mobile$Tarrif.Currecy[index] <- "GHS"
+#index <- mobile$Country == "New Caledonia"
+#mobile$Tarrif.Currecy[index] <- "XPF"
+#index <- mobile$Country == "Tanzania"
+#mobile$Tarrif.Currecy[index] <- "TZS"
+#index <- mobile$Country == "Palestinian Territory"
+#mobile$Tarrif.Currecy[index] <- "ILS"
 ```
 
 
-
-Now we can add the relevant exchange rate and GNI data...
-```{r}
-gni_usd <- read.csv("world-gni-historic.csv", header = TRUE,
-                           sep = ",")
-xrates_usd <- read.csv("xrates-2015.csv", header = TRUE, sep = ",")
-
-gni_usd <- gni_usd %>% select(Country.Code, X2014)
-```
-
-
-
-Let's check if there are any errors in the currency coding in the mobile data set...
-```{r}
+Let's check if any countries have more than one currency code...
+```{r mobile_check_currency}
 check <- mobile %>% distinct(Tarrif.Currecy) %>% group_by(Country) %>%
   summarise(count = n()) %>% filter(count > 1)
 
@@ -73,99 +87,176 @@ redos
 ```
 
 
+We can recode those errors to keep that data...
+```{r mobile_recode_redundant}
+# Afghanistan done manually while validating currency codes manually
 
-We can recode the currency coding errors to keep that data...
-```{r}
-index <- mobile$Tarrif.Currecy == "AFS"
-mobile$Tarrif.Currecy[index] <- "AFN"
-
-index <- mobile$Tarrif.Currecy == "BYR "
-mobile$Tarrif.Currecy[index] <- "BYR"
+#index <- mobile$Tarrif.Currecy == "AFS"
+#mobile$Tarrif.Currecy[index] <- "AFN"
 
 index <- mobile$Tarrif.Currecy == "CKZ"
 mobile$Tarrif.Currecy[index] <- "CZK"
+```
 
-index <- mobile$Tarrif.Currecy == "MGA "
-mobile$Tarrif.Currecy[index] <- "MGA"
 
-index <- mobile$Tarrif.Currecy == "GBP "
-mobile$Tarrif.Currecy[index] <- "GBP"
+Fill in missing 'Cost' data with 'Monthly.cost' data and remove any NAs. Also, let's keep only the relevant features...
+```{r mobile_combine_costs}
+str(mobile)
+# the 'Cost' feature needs to be numeric first.
+# as numeric from factor would assign a number corresponding to the level
+# of the factor. we need as character before numeric to get the value.
+mobile$Cost <- as.numeric(as.character(mobile$Cost))
+
+nas <- is.na(mobile$Cost)
+mobile[nas, ]$Cost <- mobile[nas, ]$Monthly.cost
+
+# remove rows without any cost data
+mobile <- subset(mobile, !is.na(Cost))
+
+# double check voice/sms types before keeping
+table(mobile$Voice...SMS.Included.)
+
+mobile <- mobile %>% select(Country, Code, Usage.allowance, Allowance.units,
+                            Validity..days., Cost, Voice...SMS.Included.,
+                            Tarrif.Currecy)
 ```
 
 
 
+
+
+Now we can add the relevant exchange rate and GNI data...
+```{r gni_xrates_import}
+gni_usd <- read.csv("world-gni-historic.csv", header = TRUE,
+                           sep = ",")
+xrates_usd <- read.csv("xrates-2015.csv", header = TRUE, sep = ",")
+```
+
+
+Any missing 2014 GNI data is replaced by either 2013 or in a few rare cases 2012...
+```{r gni_fill_missing}
+nas <- is.na(gni_usd$X2014)
+gni_usd[nas, ]$X2014 <- gni_usd[nas, ]$X2013
+
+nas <- is.na(gni_usd$X2014)
+gni_usd[nas, ]$X2014 <- gni_usd[nas, ]$X2012
+
+# still missing a good chunk of data
+nas <- is.na(gni_usd$X2014)
+sum(nas)
+# for these countries
+as.vector(unlist(gni_usd[nas, ]$Country.Code))
+
+gni_usd <- gni_usd %>% select(Country.Code, X2014)
+```
+
+
+
+
+
 Now we can merge the exchange rate and GNI data to the mobile data...
-```{r}
+```{r combine_data_sets}
 combine <- merge(mobile, xrates_usd, by.x = "Tarrif.Currecy",
                   by.y = "Currency_Code", all.x = TRUE)
 
 combine <- merge(combine, gni_usd, by.x = "Code",
                   by.y = "Country.Code", all.x = TRUE)
-```
 
+# see if we have xrates for all countries in the merged data set
+check <- combine %>% filter(is.na(USDxrate)) %>%
+  distinct(Tarrif.Currecy) %>% select(Code, Tarrif.Currecy, Country)
+# all countries have xrates!
+```
 
 
 The names are not precise and kind of inconvenient...
-```{r}
+```{r combine_rename_features}
 names(combine)
 
 names(combine) <- c("country.code", "currency.code", "country.name",
-                    "data.amount", "data.unit", "expiry", "cost.local", "usdxrate",
-                    "gni")
+                    "data.amount", "data.unit", "expiry",
+                    "cost.local", "voice.sms","usdxrate", "gni")
 ```
 
 
+Now that we have country name together with GNI data we can add a few GNIs manually from the web...
+```{r combine_manual_gni}
+nas <- is.na(combine$gni)
+# missing data
+missing <- combine[nas, ]
+# and the counts
+counts <- missing %>% group_by(country.name) %>% summarise(n())
 
-Get rid of rows without data...
-```{r}
-# change empty string to NA
-combine[combine == ""] <- NA
+index <- combine$country.name == "Aruba"
+combine$gni[index] <- 23649
+index <- combine$country.name == "Andorra" #2008!
+combine$gni[index] <- 43110
+index <- combine$country.name == "Angola"
+combine$gni[index] <- 6670
+index <- combine$country.name == "Anguilla"
+combine$gni[index] <- 19732
+index <- combine$country.name == "Cayman Islands"
+combine$gni[index] <- 53271
+index <- combine$country.name == "Congo Democratic Republic"
+combine$gni[index] <- 680
+index <- combine$country.name == "Cook Islands"
+combine$gni[index] <- 15003
+index <- combine$country.name == "Cuba"
+combine$gni[index] <- 18520
+index <- combine$country.name == "Curacao"
+combine$gni[index] <- 20167
+index <- combine$country.name == "Djibouti"
+combine$gni[index] <- 1936
+index <- combine$country.name == "French Polynesia"
+combine$gni[index] <- 20099
+index <- combine$country.name == "Greenland"
+combine$gni[index] <- 42408
+index <- combine$country.name == "Monaco"
+combine$gni[index] <- 187650
+index <- combine$country.name == "New Caledonia"
+combine$gni[index] <- 39392
+index <- combine$country.name == "New Zealand"
+combine$gni[index] <- 30750
+index <- combine$country.name == "Palestinian Territory"
+combine$gni[index] <- 4900
+index <- combine$country.name == "Romania"
+combine$gni[index] <- 18060
+index <- combine$country.name == "Somalia"
+combine$gni[index] <- 125
+index <- combine$country.name == "Syria"
+combine$gni[index] <- 1784
+index <- combine$country.name == "Taiwan"
+combine$gni[index] <- 22598
+index <- combine$country.name == "Timor-Leste"
+combine$gni[index] <- 2494
 
-combine <- na.omit(combine)
+# no gni data for these countries
+nas <- is.na(combine$gni)
+# missing data
+missing <- combine[nas, ]
+# the counts
+counts <- missing %>% group_by(country.name) %>% summarise(n())
+# missing country names only
+missing <- unlist(as.vector(counts$country.name))
+missing
 ```
 
 
-
-Let's make sure that our features are the correct data type
-```{r}
-str(combine)
-
-# as numeric from factor would assign a number corresponding to the level
-# of the factor. we need as character before numeric to get the value.
-combine$expiry <- as.numeric(as.character(combine$expiry))
-combine$cost.local <- as.numeric(as.character(combine$cost.local))
-#combine$cost.local <- signif(combine$cost.local, digits = 3)
-
-# lost 1 data point to coercion
-combine <- na.omit(combine)
-
-str(combine)
+Let's remove those countries with no GNI info
+```{r remove_no_gni}
+combine <- combine %>% filter(!(country.name %in% missing))
 ```
-
 
 
 Create a USD cost for each mobile plan and a monthly GNI.
-```{r}
+```{r combine_add_usdcost_gnimonth}
 combine <- combine %>% mutate(cost.usd = cost.local/usdxrate) %>%
   mutate(gni.month = gni/12)
 ```
 
 
-
-Let's convert MB to GB for 1, 7 and 30 day plans for easier aggregation. Let's check plan expiry types and counts first...
-```{r}
-# counts of different durations of plans
-plan.counts <- combine %>% group_by(expiry) %>% summarise(count = n())
-
-# 1, 7, AND 30 DAY PLANS HAVE THE MOST DATA.
-# WE COULD FACTOR SOME OF THE REMAINING DATA (2,3,14,28) TO ADD MORE
-# INSTANCES FOR 1 AND 7 DAYS BUT LET'S SEE HOW IT GOES FIRST
-
-
-
-# filter for 1, 7, and 30 day plans (note single OR divider)
-combine <- combine %>% filter(expiry == 1 | expiry == 7 | expiry == 30)
-
+Let's convert MB to GB for easier aggregation.
+```{r combine_mb_gb}
 # logical vector of rows with "MB" as data unit
 #mb <- combine$data.unit == "MB" & (combine$expiry == 1 | combine$expiry == 7 | combine$expiry == 30)
 mb <- combine$data.unit == "MB"
@@ -179,59 +270,90 @@ combine[mb, ]$data.unit <- "GB"
 
 # CHECK SELECTION AFTER
 #combine[mb, ]
+
+# what kind of types and counts do we have left here?
+table(combine$data.unit)
+
+# some kilobytes, must be bad data
+bad <- subset(combine, data.unit == "KB")
+# only one observation in Iraq but definitely bad data
+# no way 1GB should cost 5k USD
+# it should be "MB" let's treat it as so
+kb <- combine$data.unit == "KB"
+combine[kb, ]$data.amount <- (combine[kb, ]$data.amount / 1000)
+combine[kb, ]$data.unit <- "GB"
+#combine <- subset(combine, data.unit != "KB")
+```
+
+
+Let's see how many observations have voice/sms included and get counts of different expiry types. 
+```{r explore_voicesms_expiry_types}
+check <- subset(combine, voice.sms == "Yes")
+nrow(check)
+
+table(combine$expiry)
+# let's order these with dplyr instead
+
+str(combine)
+# first convert to numeric
+combine$expiry <- as.numeric(as.character(combine$expiry))
+# counts of different durations of plans
+plan.counts <- combine %>% group_by(expiry) %>% summarise(count = n()) %>%
+  arrange(expiry)
+# there are some numbers below 1 but looking at the original data they seem
+# to be coding errors and should be 1.
+```
+
+
+The price per GB is inflated with voice.sms plans so let's keep it simple and exclude these.  Also expiry tends to affect this too, let's keep monthly-ish plans only (28-31 days).
+```{r filter_expiry_voice_plans}
+combine <- subset(combine, voice.sms == "No" & (expiry <= 31 & expiry >= 28))
 ```
 
 
 
-Now let's group by country and plan/expiry type to get total data amount and total cost for each plan duration. From here we can get an average cost in USD per GB for each plan duration for a given country.
-```{r}
+
+
+Now let's group by country to get total data amount and total cost. From here we can get an average cost in USD per GB...
+```{r final_df_costpergb}
 # need to groupby 'gni.month' and 'country.code' here or it gets removed in the chain
-
 final_df <- combine %>%
-  group_by(country.name, expiry, country.code, gni.month, currency.code) %>%
+  group_by(country.code, country.name, gni.month) %>%
   summarise(total.amount = sum(data.amount),
-            total.cost = sum(cost.usd),
-            total.plans = n()) %>%
-  mutate(cost.usd.per.gb = total.cost/total.amount/total.plans)
+            total.cost = sum(cost.usd)) %>%
+  mutate(cost.usd.per.gb = total.cost/total.amount)
 ```
 
 
-
-Some kind of benchmark usage cost would be good to establish a typical monthly bill across plans/expiry.  Some sources that say the average person consumes about 2GB of mobile data (albeit in the US but this also doesn't include mobile wifi which is apparently close to 8GB per month) so a cost for this average consumption per plan/expiry would be nice.  We could also create another feature representing the proportion of the 2GB monthly consumption cost as a fraction of monthly GNI per person in that country.  This will really help to establish a relative measure for the choropleth map.
-```{r}
+We have average cost in USD per GB but this doesn't quite paint an accurate picture mobile data accessibility.  For this we can compare the typical monthly usage (2GB) bill divided by the montly GNI per capita.  The 2GB approximate average monthly usage comes from a few online sources.  In the US, the average person consumes about 2GB of mobile data (although this doesn't include mobile wifi as in free hotspots at starbucks which is apparently close to an additional 8GB per month). This relative measure of mobile data accessibility will really in brining to life the choropleth map.
+```{r final_df_percent_income}
 final_df <- final_df %>%
-  mutate(cost.usd.bench.2gb.month = 2*cost.usd.per.gb) %>%
-  mutate(percent.bench.income = 100*cost.usd.bench.2gb.month/gni.month) %>%
-  select(-total.amount, -total.cost, -total.plans)
+  mutate(percent.income = 100*2*cost.usd.per.gb/gni.month) %>%
+  select(-total.amount, -total.cost)
 ```
-
 
 
 Let's make sure our relative measure domain is reasonable for a choropleth map...
-```{r}
+```{r final_df_domain_check}
 summary(final_df)
 ggplot(aes(x = cost.usd.per.gb), data = final_df) +
   geom_histogram()
 # we have some major outliers, let's see all high values...
-check <- subset(final_df, cost.usd.per.gb > 40)
+check <- subset(final_df, cost.usd.per.gb > 30)
+# let's also look at the smaller values
+check <- subset(final_df, cost.usd.per.gb < 2)
+# manual inspection for some bad values in each country was done on the
+# original csv after this
 ```
 
 
-
-Looking at some of the costs in the original mobile data it seems there may have been some bad data entry so I'm going to exclude anything above $30/GB...
-```{r}
-final_df <- subset(final_df, cost.usd.per.gb <= 30)
-summary(final_df)
-ggplot(aes(x = cost.usd.per.gb), data = final_df) +
-  geom_histogram()
-```
 
 
 
 Write data to csv for d3 visualization...
-```{r}
-ordering <- c("country.name", "country.code", "expiry", "cost.usd.per.gb",
-              "cost.usd.bench.2gb.month", "percent.bench.income", "gni.month")
+```{r final_df_write_csv}
+ordering <- c("country.code", "country.name", "gni.month", "cost.usd.per.gb",
+              "percent.income")
 
 final_df <- final_df[, ordering]
 

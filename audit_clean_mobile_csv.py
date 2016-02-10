@@ -41,7 +41,7 @@ def audit_fields(filename):
     bad_data_instances = []
 
     # these fields shouldn't have any characters
-    numbers = ['Usage allowance', 'Validity (days)', 'Cost']
+    numbers = ['Usage allowance', 'Validity (days)', 'Cost', 'Monthly cost']
 
     with open(filename, "r") as fin:
 
@@ -76,11 +76,9 @@ def process_file(filename):
 
         for line in reader:
 
-            # again, these fields should be numbers rather than strings
+            # 'Usage allowance' is the only field here that we have to screen for strings
             usage = line['Usage allowance']
-            expiry = line['Validity (days)']
-            cost = line['Cost']
-
+            
             if(word.match(usage)):
                 continue
             '''
@@ -88,9 +86,7 @@ def process_file(filename):
             usage = float(expiry)
             usage = float(cost)
             '''
-
             data.append(line)
-
 
     return header, data
 
@@ -108,11 +104,11 @@ if __name__ == "__main__":
     # all fields are type string
 
 
-    # some data we want numerical,
-    # see if numerical string data have any characters.
+    # some data we want numerical ('Usage allowance', 'Validity (days)', 'Cost', 'Monthly cost').
+    # let's see if numerical string data have any characters.
     #print audit_fields(filename)
-    # 'Usage allowance' has some characters in it.
-    # the bad instances are relatively spread and not enough data to compare unlimited plans
+    # 'Usage allowance' has some characters in it referring to unlimited plans.
+    # the bad instances are relatively spread and not enough data to compare unlimited plans.
     # we can omit them when processing the file.
 
 
