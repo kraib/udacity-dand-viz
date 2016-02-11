@@ -119,7 +119,7 @@
     // load data and callback
     queue()
     .defer(d3.json, "https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/world_countries.json")
-    .defer(d3.csv, "mobile-world-data.csv")
+    .defer(d3.csv, "https://raw.githubusercontent.com/winkelman/udacity-dand-viz-project/master/mobile-world-data.csv")
     .await(callback);
 
 
