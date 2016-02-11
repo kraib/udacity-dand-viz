@@ -9,3 +9,7 @@ https://github.com/mbostock/d3/wiki/Arrays
 http://stackoverflow.com/questions/27509/detecting-an-undefined-object-property
 
 https://suffenus.wordpress.com/2014/01/07/making-interactive-maps-with-d3-for-total-beginners/
+
+https://github.com/Caged/d3-tip
+
+http://www.jeromecukier.net/blog/2011/08/11/d3-scales-and-color/
