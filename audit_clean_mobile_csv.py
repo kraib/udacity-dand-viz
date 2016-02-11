@@ -97,7 +97,7 @@ def process_file(filename):
 if __name__ == "__main__":
 
 
-    filename = "mobile-parameters-q2-2015.csv"
+    filename = "data/mobile-parameters-q2-2015.csv"
 
 
     #print audit_field_types(filename)
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     fieldnames, data = process_file(filename)
 
-    with open("mobile-parameters-q2-2015-updated.csv", 'wb') as f_out:
+    with open("data/mobile-parameters-q2-2015-updated.csv", 'wb') as f_out:
         writer = csv.DictWriter(f_out, fieldnames=fieldnames)
         writer.writeheader()
         for line in data:

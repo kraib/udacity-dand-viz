@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js">
+  // cloudflare host "https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.14/d3.min.js"
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js">
+  // d3js.org host "http://d3js.org/queue.v1.min.js"
+  </script>
+
+  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js">
+  // local "js/d3.tip.js"
+  </script>
+
+  <script src="js/colorbrewer.min.js"></script>
+
+  <link rel="stylesheet" href="css/main.css">
+
+</head>
+<body>
+  <h1>
+  Mobile Broadband Cost Across The Globe
+  </h1>
+  <p>
+  How do mobile data prices vary across the world?  How difficult is it for the average person in any given country to afford normal usage?  To answer these question I searched the internet for relevant data, ultimately combining information from 3 different datasets:
+    <ul>
+      <li> 
+        <a href = https://docs.google.com/spreadsheets/d/1Z1rC3sg64jO9zzg7AuiUFHxaxdeRC1fLfAxwMRiImgg/edit?ts=5668e0e3#gid=0>2015 Mobile Broadband Prices - Google</a> (http://policybythenumbers.blogspot.com/)
+      </li>
+      <li>
+        <a href = http://data.worldbank.org/indicator/NY.GNP.PCAP.PP.CD>GNI PPP - World Bank</a>
+      </li>
+      <li>
+        <a href = http://www.xe.com/currencytables/?from=USD&date=2015-06-24>2015 Currency Exchange Rates - XE</a>
+      </li>
+    </ul>
+    <h2>Summary
+    </h2>This visualization is a choropleth map encompassing the globe.  There are buttons on the bottom left that enable you to color the choropleth either by average cost in U.S. dollars per gigabyte or relative cost of mobile usage as a percent of the average income for that country.  Mobile usage is assumed to be approximately 2GB per month based on anecdotal information from undocumented sources on the internet.
+    <h2>Design
+    </h2>I decided to keep this choropleth map as simple as possible.  After getting some feedback, I elected to keep data for monthly expiry only.  Originally, I had the option to facet the choropleth by expiry type with another button but this left the map incomplete for some expiry.  I also chose to leave out plans including voice/sms as there was not enough data.  Finally prepaid and postpaid plans were combined as the difference in price for similar expiry was negligible.  Factoring in all of this, the hue of the fill is based upon 1 of 7 discrete buckets for either comparative metric.
+    <h2>Feedback
+    </h2>Originally, I had the option to facet the choropleth by expiry type with another button. According to some feedback, this left the map feeling incomplete for some expiry. Also, because I had so much data, the tooltips for each country were too big for the map size and sometimes misplaced. Coloring was changed to represent buckets instead of numerical values which improved color distribution.
+    <div id="map">
+    </div>
+    <h2>Resources
+    </h2>
+    <ul>
+      <li>
+        <a href = https://github.com/mbostock/d3/wiki/API-Reference>D3 API</a>
+      </li>
+      <li>
+        <a href = http://labratrevenge.com/d3-tip/>D3-tip by Caged</a>
+      </li>
+      <li>
+        <a href = http://www.jeromecukier.net/blog/2011/08/11/d3-scales-and-color/>Jerome Cukier's Articles</a>
+      </li>
+      <li>
+        <a href = https://www.udacity.com/courses/ud507/>Udacity's Data Visualization and D3.js course</a>
+      </li>
+    </ul>
+  </p>
+
+  <script src="js/map.js"></script>
+
+</body>
+</html>

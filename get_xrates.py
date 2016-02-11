@@ -59,7 +59,7 @@ def get_xrate():
 
 if __name__ == "__main__":
 
-	with open('xrates-2015.csv', 'wb') as f_out:
+	with open('data/xrates-2015.csv', 'wb') as f_out:
 	    data = get_xrate()
 	    writer = csv.writer(f_out)
 	    writer.writerow(["Currency_Code", "USDxrate"])

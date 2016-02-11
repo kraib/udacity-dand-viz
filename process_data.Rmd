@@ -15,9 +15,10 @@ library(countrycode)
 
 Setting local directory and suppressing scientific notation of numbers..
 ```{r set_directory, echo=FALSE}
-#setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project"))
+# make sure local path is same as this file
 getwd()
 #list.files()
+#setwd(paste0(getwd(), "/data"))
 # suppress scientific notation, just a hack i guess...
 options(scipen=999)
 ```
