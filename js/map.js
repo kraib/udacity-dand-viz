@@ -7,7 +7,7 @@ var svg = d3.select("#map")
     .attr("width", width + margin)
     .attr("height", height + margin)
 
-var map = svg.append('g'); // container element within svg
+var map = svg.append('g');
 
 var projection = d3.geo.mercator()
                   .scale(260)
@@ -30,45 +30,28 @@ queue()
 
 function callback(error, worldData, mobileData) {
 
-
-  // get list/array of country codes from 'mobileData' (list is redundant, make unique later?)
-  var countries = mobileData.map(
-    function(d) {return d['country.code'];}
-    );
-
-  // make 'countryData' object from 'countries' array, 
-  // empty fields to begin...
+  // make 'countryData' object
   var countryData = {};
-  countries.forEach(function(d) {
-    countryData[d] = {'costusdgb': '', "gnimonthly": '', "percentgni": '', 'costbucket': '', 'percentbucket': ''};
-  });
 
-  //COMBINE ABOVE 2 STEPS INTO ONE STEP!
-
-  // construct 'countryData' object
   mobileData.forEach(function(d) {
+    // construct object for each country within 'countryData' object
+    countryCode = d['country.code']
+    countryData[countryCode] = {'costusdgb': '', "gnimonthly": '', "percentgni": '', 'costbucket': '', 'percentbucket': ''};
 
     d['cost.usd.per.gb'] = +d['cost.usd.per.gb'];
     d['gni.month'] = +d['gni.month'];
     d['percent.income'] = +d['percent.income'];
-
-    //debugger;
 
     countryData[d['country.code']]["costusdgb"] = d['cost.usd.per.gb'];
     countryData[d['country.code']]["gnimonthly"] = d['gni.month'];
     countryData[d['country.code']]["percentgni"] = d['percent.income'];
     countryData[d['country.code']]["costbucket"] = d['cost.usd.per.gb.bucket'];
     countryData[d['country.code']]["percentbucket"] = d['percent.income.bucket'];
-    
     }); // 'mobileData' iteration closure
-
-
-    //COMBINE ALL STEPS ABOVE INTO 1!
 
 
   // bind 'countryData' to 'worldData'
   for(index in worldData.features){
-    //debugger;
     countryCode = worldData.features[index].id;
 
     if(countryCode in countryData){
@@ -99,7 +82,6 @@ function callback(error, worldData, mobileData) {
                         content += '<p>Monthly Income: $' + d.monthlyIncome + ' (USD)</p>';
                       }
                     }
-
                   } else {
                     content += " (no data)";
                     }
@@ -115,7 +97,7 @@ function callback(error, worldData, mobileData) {
 
   // create map
   map.selectAll('path') // creating paths
-               .data(worldData.features) // data in '.features array'
+               .data(worldData.features) // coordinate data in '.features array'
                .enter()
                .append('path')
                .attr('d', path)
@@ -169,7 +151,6 @@ function callback(error, worldData, mobileData) {
       }
     }
 
-
     // sort by lower bound of bucket's numerical value in increasing order
     domain = domainValues.sort(function(a, b){return +a.split("-")[0] - +b.split("-")[0]});
 
@@ -177,7 +158,6 @@ function callback(error, worldData, mobileData) {
     var color = d3.scale.ordinal()
                 .domain(domain)
                 .range(colorbrewer['Blues']['9'].slice(2));
-
 
     // fill in paths with color
     map.selectAll('path')
@@ -192,20 +172,19 @@ function callback(error, worldData, mobileData) {
              });
 
 
+
     // create legend for the selection
 
-    // get rid of previous legend if one exists
+    // get rid of previous legend if exists, none on button
     if(d3.select(".legend")[0][0] != null) {
       d3.select(".legend")[0][0].remove();
     }
 
-    // domain is numerical value of lower bound of bucket w/o lowest bound for a threshold scale
+    // domain is numerical value of lower bound for each bucket w/o lowest (threshold scale)
     threshDomain = domain.map(function(d){return +d.split("-")[0]}).slice(1);
 
-    // inverse threshold maps color values to an array of 2 values in the domain
-    // corresponding to upper and lower bounds for that color.
-    // so threshold maps domain values with buckets,
-    // lowest and highest limits are -Inf, +Inf but === 'undefined'
+    // inverse threshold maps range value to array of 2 values in the domain corresponding to upper and lower bounds.
+    // lowest and highest limits -Inf, +Inf (=== 'undefined')
     var threshold = d3.scale.threshold()
                             .domain(threshDomain)
                             .range(color.range());
@@ -220,7 +199,7 @@ function callback(error, worldData, mobileData) {
                       .tickSize(15)
                       .tickValues(threshold.domain())
                       .tickPadding(15);
-                      // percent symbol doesn't fit
+                      // percent symbol doesn't fit well with axis
                       /*.tickFormat(function(d) {
                         if(scheme == 'relativeBucket') {
                           return d + "%";
@@ -234,11 +213,11 @@ function callback(error, worldData, mobileData) {
 
     legend.selectAll("rect")
           .data(threshold.range().map(function(color) {
-            // getting array of pairs corresponding to bounds
+            // inverting range to get array of pairs for bounds
             var d = threshold.invertExtent(color);
-            // if we are at the lowest boundary color then data = '0' since it's not in the domain
+            // if we are at the lowest boundary color then d[0] == undefined so set to '0'
             if (d[0] == null) d[0] = x.domain()[0];
-            // if we are at the highest bound color then data = '100' for same reason
+            // if we are at the highest bound color then d[1] == undefined so set to '100'
             if (d[1] == null) d[1] = x.domain()[1];
             return d;
           }))
@@ -271,9 +250,7 @@ function callback(error, worldData, mobileData) {
   //updateSelection(comparison);
 
   
-
   // looking at the valid arguments for updateSelection we can see what data we want in the buttons
-  
   var buttonData = [['Average Cost Per Gigabyte', 'costUSDGB', 'costBucket'],
   ['Percent of Monthly Income (2GB)', 'costRelative', 'relativeBucket']];
 
@@ -287,7 +264,6 @@ function callback(error, worldData, mobileData) {
                     .text(function(d) {
                         return d[0];
                     });
-
 
   buttons.on("click", function(d) {
 
@@ -309,8 +285,6 @@ function callback(error, worldData, mobileData) {
     //debugger;
     updateSelection(comparison);
     });
-
-
 
 
 
