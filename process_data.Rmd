@@ -351,11 +351,15 @@ check <- subset(final_df, cost.usd.per.gb < 2)
 Let's cut cost per GB and cost as percent of income into buckets for better visualization in d3...
 ```{r final_df_domain_buckets}
 final_df$cost.usd.per.gb.bucket = cut(final_df$cost.usd.per.gb,
-                                      c(0, 2, 5, 10, 20, 30, 50, +Inf))
+                                      c(0, 2, 5, 10, 20, 30, 50, +Inf),
+                                      labels = c('0-2', '2-5', '5-10', '10-20',
+                                                 '20-30', '30-50', '50-'))
 final_df$cost.usd.per.gb.bucket <- as.character(final_df$cost.usd.per.gb.bucket)
 
 final_df$percent.income.bucket = cut(final_df$percent.income,
-                                      c(0, 1, 3, 5, 10, 20, 40, +Inf))
+                                      c(0, 1, 3, 5, 10, 20, 40, +Inf),
+                                     labels = c('0-1', '1-3', '3-5', '5-10',
+                                                 '10-20', '20-40', '40-'))
 final_df$percent.income.bucket <- as.character(final_df$percent.income.bucket)
 ```
 
