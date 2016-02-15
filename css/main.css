@@ -37,3 +37,8 @@ div.buttons div {
   color: #fff;
   border-radius: 8px;
 }
+
+/* the actual legend svg-g element needs to be silenced for whatever reason? */
+.legend path {
+  display: none;
+}

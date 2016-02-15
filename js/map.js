@@ -6,8 +6,8 @@ var svg = d3.select("#map")
     .append("svg")
     .attr("width", width + margin)
     .attr("height", height + margin)
-    .append('g'); // container element within svg
-    
+
+var map = svg.append('g'); // container element within svg
 
 var projection = d3.geo.mercator()
                   .scale(260)
@@ -15,7 +15,7 @@ var projection = d3.geo.mercator()
 
 var path = d3.geo.path().projection(projection);
 
-// update selection argument variables need to be global for MULTIPLE button selection
+// 'updateSelection' argument variables need to be global for MULTIPLE button selection
 var comparison;
 
 // load data and callback
@@ -30,19 +30,22 @@ queue()
 
 function callback(error, worldData, mobileData) {
 
-  // get list of country codes from mobile data (list is redundant, make unique later?)
+
+  // get list/array of country codes from 'mobileData' (list is redundant, make unique later?)
   var countries = mobileData.map(
     function(d) {return d['country.code'];}
     );
 
-  // make country data object by country codes, 
-  // empty cost per gb and cost as percent gni...
+  // make 'countryData' object from 'countries' array, 
+  // empty fields to begin...
   var countryData = {};
   countries.forEach(function(d) {
     countryData[d] = {'costusdgb': '', "gnimonthly": '', "percentgni": '', 'costbucket': '', 'percentbucket': ''};
   });
 
-  // construct country data object
+  //COMBINE ABOVE 2 STEPS INTO ONE STEP!
+
+  // construct 'countryData' object
   mobileData.forEach(function(d) {
 
     d['cost.usd.per.gb'] = +d['cost.usd.per.gb'];
@@ -57,12 +60,13 @@ function callback(error, worldData, mobileData) {
     countryData[d['country.code']]["costbucket"] = d['cost.usd.per.gb.bucket'];
     countryData[d['country.code']]["percentbucket"] = d['percent.income.bucket'];
     
-    }); // mobileData iteration closure
+    }); // 'mobileData' iteration closure
 
 
+    //COMBINE ALL STEPS ABOVE INTO 1!
 
 
-  // bind mobile data in 'countryData' to world map data
+  // bind 'countryData' to 'worldData'
   for(index in worldData.features){
     //debugger;
     countryCode = worldData.features[index].id;
@@ -82,15 +86,20 @@ function callback(error, worldData, mobileData) {
                 .html(function(d) {
                   var content = '<p>' + d.properties.name + '</p>';
                   //debugger;
-                  if(d.mobile != undefined){
-                    if(comparison == 'costUSDGB'){
-                      content += '<p>$' + d.mobile[comparison] + ' (USD)</p>';
-                    }
-                    if(comparison == 'costRelative'){
+                  if(d.mobile != undefined){ // make sure we have mobile data
+
+                    if(comparison != undefined) { // make sure a comparison has been specified, no comparison from the get-go
                       
-                      content += '<p>' + d.mobile[comparison] + '%</p>';
-                      content += '<p>Monthly Income: $' + d.monthlyIncome + ' (USD)</p>';
+                      if(comparison[1] == 'costUSDGB'){
+                        content += '<p>$' + d.mobile[comparison[1]] + ' (USD)</p>';
+                      }
+                      if(comparison[1] == 'costRelative'){
+                        
+                        content += '<p>' + d.mobile[comparison[1]] + '%</p>';
+                        content += '<p>Monthly Income: $' + d.monthlyIncome + ' (USD)</p>';
+                      }
                     }
+
                   } else {
                     content += " (no data)";
                     }
@@ -100,12 +109,12 @@ function callback(error, worldData, mobileData) {
                   return [0,0];
                 });
 
-
-  svg.call(tip);
+  map.call(tip);
   tip.direction('s');
 
+
   // create map
-  var map = svg.selectAll('path') // creating paths
+  map.selectAll('path') // creating paths
                .data(worldData.features) // data in '.features array'
                .enter()
                .append('path')
@@ -117,7 +126,7 @@ function callback(error, worldData, mobileData) {
 
 
 
-  // apply choropleth
+  // apply/update choropleth
   function updateSelection(comparison) {
 
 
@@ -141,17 +150,28 @@ function callback(error, worldData, mobileData) {
     }
     */
 
-    // get domain of values and bucket variable for the comparison specified
+
+    // get sorted domain of buckets for the comparison specified
     var domain;
-    var scheme;
-    if(comparison == 'costUSDGB') {
-      domain = ['(0,2]', '(2,5]', '(5,10]', '(10,20]', '(20,30]', '(30,50]', '(50,Inf]'];
-      scheme = 'costBucket';
+    var domainValues = [];
+    var scheme = comparison[2]
+
+    for(index in worldData.features) {
+      var hasMobile = worldData.features[index]['mobile'];
+
+      if(hasMobile != undefined) {
+    
+        var domainVal = worldData.features[index]['mobile'][scheme];
+
+        if(domainValues.indexOf(domainVal) == -1){
+          domainValues.push(domainVal);
+        }
+      }
     }
-    if(comparison == 'costRelative') {
-      domain = ['(0,1]', '(1,3]', '(3,5]', '(5,10]', '(10,20]', '(20,40]', '(40,Inf]'];
-      scheme = 'relativeBucket';
-    }
+
+
+    // sort by lower bound of bucket's numerical value in increasing order
+    domain = domainValues.sort(function(a, b){return +a.split("-")[0] - +b.split("-")[0]});
 
     // color scale
     var color = d3.scale.ordinal()
@@ -160,7 +180,7 @@ function callback(error, worldData, mobileData) {
 
 
     // fill in paths with color
-    svg.selectAll('path')
+    map.selectAll('path')
              .transition()
              .duration(800)
              .style('fill', function(d){
@@ -170,6 +190,77 @@ function callback(error, worldData, mobileData) {
                   return color(d.mobile[scheme]);
                 } else{return "DimGray"}
              });
+
+
+    // create legend for the selection
+
+    // get rid of previous legend if one exists
+    if(d3.select(".legend")[0][0] != null) {
+      d3.select(".legend")[0][0].remove();
+    }
+
+    // domain is numerical value of lower bound of bucket w/o lowest bound for a threshold scale
+    threshDomain = domain.map(function(d){return +d.split("-")[0]}).slice(1);
+
+    // inverse threshold maps color values to an array of 2 values in the domain
+    // corresponding to upper and lower bounds for that color.
+    // so threshold maps domain values with buckets,
+    // lowest and highest limits are -Inf, +Inf but === 'undefined'
+    var threshold = d3.scale.threshold()
+                            .domain(threshDomain)
+                            .range(color.range());
+
+    var x = d3.scale.linear()
+                    .domain([0, 100])
+                    .range([0, 600]);
+
+    var xAxis = d3.svg.axis()
+                      .scale(x)
+                      .orient("bottom")
+                      .tickSize(15)
+                      .tickValues(threshold.domain())
+                      .tickPadding(15);
+                      // percent symbol doesn't fit
+                      /*.tickFormat(function(d) {
+                        if(scheme == 'relativeBucket') {
+                          return d + "%";
+                        } else {
+                          return "$" + d;}
+                      });*/
+
+    var legend = svg.append("g")
+                    .attr("class", "legend")
+                    .attr("transform", "translate(" + (-200 + width/2) + "," + height + ")");
+
+    legend.selectAll("rect")
+          .data(threshold.range().map(function(color) {
+            // getting array of pairs corresponding to bounds
+            var d = threshold.invertExtent(color);
+            // if we are at the lowest boundary color then data = '0' since it's not in the domain
+            if (d[0] == null) d[0] = x.domain()[0];
+            // if we are at the highest bound color then data = '100' for same reason
+            if (d[1] == null) d[1] = x.domain()[1];
+            return d;
+          }))
+          .enter()
+          .append("rect")
+          .attr("x", function(d) {
+            return x(d[0]);
+          })
+          .attr("height", 20)
+          .attr("width", function(d) {
+            return x(d[1]) - x(d[0]);
+          })
+          .transition()
+          .duration(600)
+          .style("fill", function(d) {
+            return threshold(d[0]);
+          });
+
+    legend.call(xAxis).append("text")
+                 .attr("class", "caption")
+                 .attr("y", -10)
+                 .text(comparison[0]);
 
 
   } // updateSelection closure
@@ -183,8 +274,8 @@ function callback(error, worldData, mobileData) {
 
   // looking at the valid arguments for updateSelection we can see what data we want in the buttons
   
-  var buttonData = [['Average Cost Per Gigabyte', 'costUSDGB'],
-  ['Percent of Monthly Income (2GB)', 'costRelative']];
+  var buttonData = [['Average Cost Per Gigabyte', 'costUSDGB', 'costBucket'],
+  ['Percent of Monthly Income (2GB)', 'costRelative', 'relativeBucket']];
 
   var buttons = d3.select("body")
                     .append("div")
@@ -214,7 +305,7 @@ function callback(error, worldData, mobileData) {
                   .style("background", 'Maroon')
                   .style("color", "white");
   
-    comparison = d[1];
+    comparison = d;
     //debugger;
     updateSelection(comparison);
     });
