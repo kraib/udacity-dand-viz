@@ -9,8 +9,8 @@ body {
 
 div.buttons {
   position: absolute;
-  top: 1000px;
-  left: 150px;
+  top: 1100px;
+  left: 75px;
   font-size: 18px;
 }
 
@@ -27,7 +27,7 @@ div.buttons div {
     stroke: yellow !important;
     stroke-width: 2px !important;
     transition-duration: 3s !important;
-  }
+}
 
 .d3-tip {
   line-height: 1;

@@ -207,9 +207,17 @@ function callback(error, worldData, mobileData) {
                           return "$" + d;}
                       });*/
 
-    var legend = svg.append("g")
+    var legend = d3.select("#map")
+                    .append("svg")
                     .attr("class", "legend")
-                    .attr("transform", "translate(" + (-200 + width/2) + "," + height + ")");
+                    .attr("width", width + margin)
+                    .attr("height", 75)
+                    .append("g")
+                    .attr("transform", "translate(" + (-200 + width/2) + "," + 25 + ")");
+
+    /*var legend = svg.append("g")
+                    .attr("class", "legend")
+                    .attr("transform", "translate(" + (-200 + width/2) + "," + height + ")");*/
 
     legend.selectAll("rect")
           .data(threshold.range().map(function(color) {
@@ -238,7 +246,7 @@ function callback(error, worldData, mobileData) {
 
     legend.call(xAxis).append("text")
                  .attr("class", "caption")
-                 .attr("y", -10)
+                 .attr("y", -5)
                  .text(comparison[0]);
 
 
