@@ -61,7 +61,10 @@ function callback(error, worldData, mobileData) {
       worldData.features[index]['mobile']['costRelative'] = countryData[countryCode]["percentgni"];
       worldData.features[index]['mobile']['costBucket'] = countryData[countryCode]["costbucket"];
       worldData.features[index]['mobile']['relativeBucket'] = countryData[countryCode]["percentbucket"];
-    }
+    
+    } // debug for missing country matches!!
+    else {console.log(countryCode + " " + worldData.features[index].properties.name)}
+
   }; // worldData.features for loop closure
 
 
