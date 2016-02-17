@@ -306,6 +306,7 @@ plan.counts <- combine %>% group_by(expiry) %>% summarise(count = n()) %>%
 ```
 
 
+
 The price per GB is inflated with voice.sms plans so let's keep it simple and exclude these.  Also expiry tends to affect this too, let's keep monthly-ish plans only (28-31 days).
 ```{r filter_expiry_voice_plans}
 combine <- subset(combine, voice.sms == "No" & (expiry <= 31 & expiry >= 28))
