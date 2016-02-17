@@ -29,7 +29,7 @@ options(scipen=999)
 
 Let's import the mobile data set and add country code so that we can merge the GNI data by a common value later.
 ```{r mobile_import}
-mobile <- read.csv("mobile-parameters-q2-2015-updated.csv",
+mobile <- read.csv("mobile-parameters-q2-2015.csv",
                    header = TRUE, sep = ",", strip.white = TRUE)
 
 mobile$Code <- countrycode(mobile$Country, "country.name", "wb")
@@ -92,8 +92,8 @@ We can recode those errors to keep that data...
 ```{r mobile_recode_redundant}
 # Afghanistan done manually while validating currency codes manually
 
-#index <- mobile$Tarrif.Currecy == "AFS"
-#mobile$Tarrif.Currecy[index] <- "AFN"
+index <- mobile$Tarrif.Currecy == "AFS"
+mobile$Tarrif.Currecy[index] <- "AFN"
 
 index <- mobile$Tarrif.Currecy == "CKZ"
 mobile$Tarrif.Currecy[index] <- "CZK"
