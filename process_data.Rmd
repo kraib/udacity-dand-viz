@@ -18,7 +18,7 @@ Setting local directory and suppressing scientific notation of numbers..
 # make sure local path is same as this file
 getwd()
 #list.files()
-#setwd(paste0(getwd(), "/data"))
+#setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project/data"))
 # suppress scientific notation, just a hack i guess...
 options(scipen=999)
 ```
@@ -307,23 +307,37 @@ plan.counts <- combine %>% group_by(expiry) %>% summarise(count = n()) %>%
 
 
 
+
+
+----
 The price per GB is inflated with voice.sms plans so let's keep it simple and exclude these.  Also expiry tends to affect this too, let's keep monthly-ish plans only (28-31 days).
 ```{r filter_expiry_voice_plans}
 combine <- subset(combine, voice.sms == "No" & (expiry <= 31 & expiry >= 28))
 ```
+----
 
 
 
 
+Let's get cost per gb for each plan...
+```{r}
+combine <- combine %>% mutate(cost.gb.usd = cost.usd / data.amount)
+```
 
-Now let's group by country to get total data amount and total cost. From here we can get an average cost in USD per GB...
+
+Only keep data plans...?
+```{r}
+
+```
+
+
+Now let's group by country and get an average cost per GB by adding all the cost per GB for a country and then dividing by the number of plans...
 ```{r final_df_costpergb}
 # need to groupby 'gni.month' and 'country.code' here or it gets removed in the chain
 final_df <- combine %>%
   group_by(country.code, country.name, gni.month) %>%
-  summarise(total.amount = sum(data.amount),
-            total.cost = sum(cost.usd)) %>%
-  mutate(cost.usd.per.gb = total.cost/total.amount)
+  summarise(count = n(), total.cost.gb.usd = sum(cost.gb.usd)) %>%
+  mutate(cost.usd.per.gb = total.cost.gb.usd/count)
 ```
 
 
@@ -331,7 +345,7 @@ We have average cost in USD per GB but this doesn't quite paint an accurate pict
 ```{r final_df_percent_income}
 final_df <- final_df %>%
   mutate(percent.income = 100*2*cost.usd.per.gb/gni.month) %>%
-  select(-total.amount, -total.cost)
+  select(-count, -total.cost.gb.usd)
 ```
 
 
@@ -379,6 +393,17 @@ final_df <- final_df[, ordering]
 final_df$gni.month <- round(final_df$gni.month, 2)
 final_df$cost.usd.per.gb <- round(final_df$cost.usd.per.gb, 2)
 final_df$percent.income <- round(final_df$percent.income, 2)
+
+#final renames to sync up with geojson file
+# Dem. Rep. of Congo
+index <- final_df$country.code == "CRI"
+final_df$country.code[index] <- "COD"
+# Romania
+index <- final_df$country.code == "PRT"
+final_df$country.code[index] <- "ROU"
+# West Bank/Palestine
+index <- final_df$country.code == "NPL"
+final_df$country.code[index] <- "PSE"
 
 write.csv(final_df, file = "mobile-world-data.csv", row.names = FALSE)
 ```
