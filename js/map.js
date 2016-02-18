@@ -16,7 +16,8 @@ var projection = d3.geo.mercator()
 var path = d3.geo.path().projection(projection);
 
 // 'updateSelection' argument variables need to be global for MULTIPLE button selection
-var comparison;
+var unitArray;
+var comparisonArray;
 
 // load data and callback
 queue()
@@ -30,61 +31,101 @@ queue()
 
 function callback(error, worldData, mobileData) {
 
-  // make 'countryData' object
-  var countryData = {};
 
-  mobileData.forEach(function(d) {
+  var countryData = {}; // make 'countryData' object
+
+  mobileData.forEach(function(d) {  // add data from mobileData for each country
+
     // construct object for each country within 'countryData' object
-    countryCode = d['country.code']
-    countryData[countryCode] = {'costusdgb': '', "gnimonthly": '', "percentgni": '', 'costbucket': '', 'percentbucket': ''};
+    countryCode = d['country.code'];
+    countryData[countryCode] = {'mb': {}, 'gb': {}}; // separate by unit type
 
-    d['cost.usd.per.gb'] = +d['cost.usd.per.gb'];
+    // cast relevant data as numerical, keep buckets as strings
     d['gni.month'] = +d['gni.month'];
-    d['percent.income'] = +d['percent.income'];
+    d['gb.cost.gb'] = +d['gb.cost.gb'];
+    d['gb.cost.mb'] = +d['gb.cost.mb'];
+    d['percent.income.gb'] = +d['percent.income.gb'];
+    d['percent.income.mb'] = +d['percent.income.mb'];
 
-    countryData[d['country.code']]["costusdgb"] = d['cost.usd.per.gb'];
-    countryData[d['country.code']]["gnimonthly"] = d['gni.month'];
-    countryData[d['country.code']]["percentgni"] = d['percent.income'];
-    countryData[d['country.code']]["costbucket"] = d['cost.usd.per.gb.bucket'];
-    countryData[d['country.code']]["percentbucket"] = d['percent.income.bucket'];
-    }); // 'mobileData' iteration closure
+    // add fields
+
+    // too simple, need to create 'gb' and 'mb' objects for button selection
+    /*for(index in d) {
+      if(index != "country.code" & index != "country.name" ) {
+        countryData[countryCode][index] = d[index];
+      }
+    }*/
+    countryData[countryCode]['gni.month'] =d['gni.month'];
+
+    countryData[countryCode]['gb']['cost'] = d['gb.cost.gb'];
+    countryData[countryCode]['gb']['cost.bucket'] = d['gb.cost.gb.bucket'];
+    countryData[countryCode]['gb']['percent.income'] = d['percent.income.gb'];
+    countryData[countryCode]['gb']['percent.income.bucket'] = d['percent.income.gb.bucket'];
+
+    countryData[countryCode]['mb']['cost'] = d['gb.cost.mb'];
+    countryData[countryCode]['mb']['cost.bucket'] = d['gb.cost.mb.bucket'];
+    countryData[countryCode]['mb']['percent.income'] = d['percent.income.mb'];
+    countryData[countryCode]['mb']['percent.income.bucket'] = d['percent.income.mb.bucket'];
+
+  }); // 'mobileData' iteration closure
 
 
-  // bind 'countryData' to 'worldData'
-  for(index in worldData.features){
+
+  for(index in worldData.features){  // bind 'countryData' to 'worldData'
     countryCode = worldData.features[index].id;
 
     if(countryCode in countryData){
-      worldData.features[index]['mobile'] = {};
-      worldData.features[index]['monthlyIncome'] = countryData[countryCode]["gnimonthly"];
-      worldData.features[index]['mobile']['costUSDGB'] = countryData[countryCode]["costusdgb"];
-      worldData.features[index]['mobile']['costRelative'] = countryData[countryCode]["percentgni"];
-      worldData.features[index]['mobile']['costBucket'] = countryData[countryCode]["costbucket"];
-      worldData.features[index]['mobile']['relativeBucket'] = countryData[countryCode]["percentbucket"];
-    
-    } // debug for missing country matches!!
-    else {console.log(countryCode + " " + worldData.features[index].properties.name)}
 
-  }; // worldData.features for loop closure
+      // setup first 2 fields
+      worldData.features[index]['mobile'] = {'gb': {},'mb': {}};
+      worldData.features[index]['monthlyIncome'] = countryData[countryCode]["gni.month"];
+
+      // loop through the 'mb' and 'gb' fields and assign
+      for(unitType in countryData[countryCode]) {
+        if(unitType != "gni.month" ) {
+
+          for(field in countryData[countryCode][unitType]) {
+            worldData.features[index]['mobile'][unitType][field] = countryData[countryCode][unitType][field];
+          }
+        }
+      }
+    }
+    // debug for unmatched geojson countries
+    //else {console.log(countryCode + " " + worldData.features[index].properties.name)}
+
+  }; // worldData.features iteration closure
 
 
+
+  // debug for unmatched mobileData countries
+  /*var geocountries = worldData.features.map(function(d) {return d.id;});
+  for(index in countryData) {
+    if(geocountries.indexOf(index) == -1) {
+      //debugger;
+      console.log(index);
+    }
+  }*/
+
+
+  // create tooltip
   tip = d3.tip().attr('class', 'd3-tip')
                 .html(function(d) {
                   var content = '<p>' + d.properties.name + '</p>';
                   //debugger;
                   if(d.mobile != undefined){ // make sure we have mobile data
+                    content += '<p>Monthly Income: $' + d.monthlyIncome + ' (USD)</p>';
 
-                    if(comparison != undefined) { // make sure a comparison has been specified, no comparison from the get-go
+                    if(comparisonArray != undefined && unitArray != undefined) { // make sure a comparison and unit has been specified, nothing from the get-go
+                      unit = unitArray[1];
+                      comparison = comparisonArray[1];
                       
-                      if(comparison[1] == 'costUSDGB'){
-                        content += '<p>$' + d.mobile[comparison[1]] + ' (USD)</p>';
+                      if(comparison == 'cost' && !isNaN(d.mobile[unit][comparison])){
+                        content += '<p>' + comparisonArray[0] + ': $' + d.mobile[unit]['cost'] + ' (USD)</p>';
                       }
-                      if(comparison[1] == 'costRelative'){
-                        
-                        content += '<p>' + d.mobile[comparison[1]] + '%</p>';
-                        content += '<p>Monthly Income: $' + d.monthlyIncome + ' (USD)</p>';
+                      if(comparison == 'percent.income' && !isNaN(d.mobile[unit][comparison])){
+                        content += '<p>' + comparisonArray[0] + ': ' + d.mobile[unit]['percent.income'] + '%</p>';
                       }
-                    }
+                    } 
                   } else {
                     content += " (no data)";
                     }
@@ -100,7 +141,7 @@ function callback(error, worldData, mobileData) {
 
   // create map
   map.selectAll('path') // creating paths
-               .data(worldData.features) // coordinate data in '.features array'
+               .data(worldData.features) // coordinate data in '.features' array
                .enter()
                .append('path')
                .attr('d', path)
@@ -112,44 +153,29 @@ function callback(error, worldData, mobileData) {
 
 
   // apply/update choropleth
-  function updateSelection(comparison) {
-
+  function updateSelection(specsArray) {
 
     // CREATE COLOR SCALE
-
-    /*
-    // NO NEED TO DO THIS NOW THAT WE HAVE BUCKETS
-    // first get values of interest across all countries for the particular duration and metric
-    var targets = d3.selectAll("path")[0];
-    var values = [];
-
-    for(var index = 0; index < targets.length; index++){
-
-      //debugger;
-      var hasMobile = ('mobile' in targets[index].__data__)
-      if(hasMobile){
-        //debugger;
-        var data = targets[index].__data__.mobile[scheme];
-        values.push(data);
-      }
-    }
-    */
-
 
     // get sorted domain of buckets for the comparison specified
     var domain;
     var domainValues = [];
-    var scheme = comparison[2]
+    var unitArr = specsArray[0];
+    var unit = unitArr[1];
+    var comparisonArr = specsArray[1];
+    var comparisonBucket = comparisonArr[2];
 
     for(index in worldData.features) {
       var hasMobile = worldData.features[index]['mobile'];
 
-      if(hasMobile != undefined) {
-    
-        var domainVal = worldData.features[index]['mobile'][scheme];
+      if(hasMobile != undefined) { // make sure country has mobile data
 
-        if(domainValues.indexOf(domainVal) == -1){
+        if(unitArr != undefined && comparisonArr != undefined) { // make sure a comparison and unit has been specified, nothing from the get-go
+          var domainVal = worldData.features[index]['mobile'][unit][comparisonBucket];
+
+          if(domainValues.indexOf(domainVal) == -1 && domainVal != "NA"){ // only add new values
           domainValues.push(domainVal);
+          }
         }
       }
     }
@@ -160,18 +186,19 @@ function callback(error, worldData, mobileData) {
     // color scale
     var color = d3.scale.ordinal()
                 .domain(domain)
-                .range(colorbrewer['Blues']['9'].slice(2));
+                .range(colorbrewer['YlGnBu']['9'].slice(3));
 
     // fill in paths with color
     map.selectAll('path')
              .transition()
              .duration(800)
              .style('fill', function(d){
-              //debugger;
               var hasMobile = ('mobile' in d);
-              if(hasMobile){
-                  return color(d.mobile[scheme]);
-                } else{return "DimGray"}
+              // check if mobile data and data for unit and comparison
+              //debugger;
+              if(hasMobile && (d.mobile[unit][comparisonBucket] != "NA")) {
+                return color(d.mobile[unit][comparisonBucket]);
+              } else{return "DimGray"}
              });
 
 
@@ -211,7 +238,7 @@ function callback(error, worldData, mobileData) {
                       });*/
 
     var legend = d3.select("#map")
-                    .append("svg")
+                    .append("svg") // separate svg for the legend
                     .attr("class", "legend")
                     .attr("width", width + margin)
                     .attr("height", 75)
@@ -250,53 +277,76 @@ function callback(error, worldData, mobileData) {
     legend.call(xAxis).append("text")
                  .attr("class", "caption")
                  .attr("y", -5)
-                 .text(comparison[0]);
+                 .text(comparisonArr[0]);
 
 
   } // updateSelection closure
 
 
-  // for debugging...
-  //comparison = 'costUSDGB';
-  //updateSelection(comparison);
-
   
   // looking at the valid arguments for updateSelection we can see what data we want in the buttons
-  var buttonData = [['Average Cost Per Gigabyte', 'costUSDGB', 'costBucket'],
-  ['Percent of Monthly Income (2GB)', 'costRelative', 'relativeBucket']];
-
-  var buttons = d3.select("body")
+  var unitData = [['Megabyte', 'mb'], ['Gigabyte', 'gb']];
+  var comparisonData = [['Average Cost Per Gigabyte', 'cost', 'cost.bucket'],
+  ['Percent of Monthly Income (2GB)', 'percent.income', 'percent.income.bucket']];
+  
+  // unit buttons
+  var unitButtons = d3.select("body")
                     .append("div")
-                    .attr("class", "buttons")
+                    .attr("class", "unitButtons")
                     .selectAll("div")
-                    .data(buttonData)
+                    .data(unitData)
                     .enter()
                     .append("div")
                     .text(function(d) {
                         return d[0];
                     });
 
-  buttons.on("click", function(d) {
-
+  unitButtons.on("click", function(d) {
     // reset all buttons first
-    d3.select(".buttons")
+    d3.select(".unitButtons")
                   .selectAll("div")
                   .transition()
                   .duration(600)
                   .style("background", "LightGray")
                   .style("color", "black");
-
     d3.select(this)
                   .transition()
                   .duration(600)
-                  .style("background", 'Maroon')
+                  .style("background", "rgb(204, 122, 0)")
                   .style("color", "white");
-  
-    comparison = d;
-    //debugger;
-    updateSelection(comparison);
+    unitArray = d;
+    updateSelection([unitArray, comparisonArray]);
     });
 
+
+  // comparison buttons
+  var comparisonButtons = d3.select("body")
+                    .append("div")
+                    .attr("class", "comparisonButtons")
+                    .selectAll("div")
+                    .data(comparisonData)
+                    .enter()
+                    .append("div")
+                    .text(function(d) {
+                        return d[0];
+                    });
+
+  comparisonButtons.on("click", function(d) {
+    // reset all buttons first
+    d3.select(".comparisonButtons")
+                  .selectAll("div")
+                  .transition()
+                  .duration(600)
+                  .style("background", "LightGray")
+                  .style("color", "black");
+    d3.select(this)
+                  .transition()
+                  .duration(600)
+                  .style("background", "rgb(204, 122, 0)")
+                  .style("color", "white");
+    comparisonArray = d;
+    updateSelection([unitArray, comparisonArray]);
+    });
 
 
 } // callback closure

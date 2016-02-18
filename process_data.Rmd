@@ -225,29 +225,29 @@ Let's cut cost per GB and cost as percent of income into buckets for better visu
 summary(final_df)
 
 final_df$gb.cost.gb.bucket <- cut(final_df$gb.cost.gb,
-                                      c(0, 3, 6, 10, 15, +Inf),
+                                      c(0, 3, 6, 10, 15, 25, +Inf),
                                       labels = c('0-3', '3-6', '6-10', '10-15',
-                                                 '15-'))
+                                                 '15-25', '25-'))
 final_df$gb.cost.gb.bucket <- as.character(final_df$gb.cost.gb.bucket)
 
 final_df$gb.cost.mb.bucket <- cut(final_df$gb.cost.mb,
-                                      c(0, 7, 15, 30, 50, +Inf),
+                                      c(0, 7, 15, 30, 50, 80, +Inf),
                                       labels = c('0-7', '7-15', '15-30', '30-50',
-                                                 '50-'))
+                                                 '50-80', '80-'))
 final_df$gb.cost.mb.bucket <- as.character(final_df$gb.cost.mb.bucket)
 
 
 
 final_df$percent.income.gb.bucket <- cut(final_df$percent.income.gb,
-                                      c(0, 1, 3, 5, 10, 20, 40, +Inf),
-                                     labels = c('0-1', '1-3', '3-5', '5-10',
-                                                 '10-20', '20-40', '40-'))
+                                      c(0, 1, 3, 10, 30, 50, +Inf),
+                                     labels = c('0-1', '1-3', '3-10',
+                                                '10-30', '30-50', '50-'))
 final_df$percent.income.gb.bucket <- as.character(final_df$percent.income.gb.bucket)
 
 final_df$percent.income.mb.bucket <- cut(final_df$percent.income.mb,
-                                      c(0, 1, 3, 5, 10, 20, 40, +Inf),
-                                     labels = c('0-1', '1-3', '3-5', '5-10',
-                                                 '10-20', '20-40', '40-'))
+                                      c(0, 3, 7, 30, 50, 80, +Inf),
+                                     labels = c('0-3', '3-7', '7-30', '30-50',
+                                                 '50-80', '80-'))
 final_df$percent.income.mb.bucket <- as.character(final_df$percent.income.mb.bucket)
 ```
 
@@ -255,6 +255,16 @@ final_df$percent.income.mb.bucket <- as.character(final_df$percent.income.mb.buc
 Add unlimited and hourly plan counts?
 ```{r add_unlimited_hourly}
 #
+```
+
+
+While debugging in javascript, a few country codes don't match up.  A few need to be changed to match up with the geojson file...
+```{r}
+# Hong Kong HKG and Singapore SGP don't have indepenent map areas in the geojson file...
+index <- final_df$country.code == "ZAR"
+final_df$country.code[index] <- "COD"
+index <- final_df$country.code == "ROM"
+final_df$country.code[index] <- "ROU"
 ```
 
 
