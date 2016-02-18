@@ -41,7 +41,7 @@ def audit_fields(filename):
     bad_data_instances = []
 
     # these fields shouldn't have any characters
-    numbers = ['Usage allowance', 'Validity (days)', 'Cost', 'Monthly cost']
+    numbers = ['Usage allowance', 'Cost per GB, excl conn (US$)']
 
     with open(filename, "r") as fin:
 
@@ -76,7 +76,7 @@ def process_file(filename):
 
         for line in reader:
 
-            # 'Usage allowance' is the only field here that we have to screen for strings
+            # 'Usage allowance' is the field that we have to screen for strings
             usage = line['Usage allowance']
             
             if(word.match(usage)):
@@ -97,26 +97,26 @@ def process_file(filename):
 if __name__ == "__main__":
 
 
-    filename = "data/mobile-parameters-q2-2015.csv"
+    filename = "data/mobile-parameters-q4-2014.csv"
 
 
     #print audit_field_types(filename)
     # all fields are type string
 
 
-    # some data we want numerical ('Usage allowance', 'Validity (days)', 'Cost', 'Monthly cost').
+    # some data we want numerical ('Usage allowance', 'Cost per GB, excl conn (US$)').
     # let's see if numerical string data have any characters.
-    #print audit_fields(filename)
+    print audit_fields(filename)
     # 'Usage allowance' has some characters in it referring to unlimited plans.
-    # the bad instances are relatively spread and not enough data to compare unlimited plans.
-    # we can omit them when processing the file.
+    # not enough data to compare unlimited plans between countries,
+    # we can keep this data and add to those countries in the tooltip.
 
 
-    fieldnames, data = process_file(filename)
+    #fieldnames, data = process_file(filename)
 
-    with open("data/mobile-parameters-q2-2015-updated.csv", 'wb') as f_out:
+    '''with open("data/mobile-parameters-q4-2014-updated.csv", 'wb') as f_out:
         writer = csv.DictWriter(f_out, fieldnames=fieldnames)
         writer.writeheader()
         for line in data:
-            writer.writerow(line)
+            writer.writerow(line)'''
     
