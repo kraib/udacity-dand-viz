@@ -286,10 +286,15 @@ function callback(error, worldData, mobileData) {
   
   // looking at the valid arguments for updateSelection we can see what data we want in the buttons
   var unitData = [['Megabyte', 'mb'], ['Gigabyte', 'gb']];
-  var comparisonData = [['Average Cost Per Gigabyte', 'cost', 'cost.bucket'],
-  ['Percent of Monthly Income (2GB)', 'percent.income', 'percent.income.bucket']];
+  var comparisonData = [['USD for 1GB of Usage', 'cost', 'cost.bucket'],
+  ['Percent of Income (2GB/Month)', 'percent.income', 'percent.income.bucket']];
   
   // unit buttons
+  var unitTitle = d3.select("body")
+                    .append("div")
+                    .attr("class", "unitTitle")
+                    .text("Purchase Data In: ");
+
   var unitButtons = d3.select("body")
                     .append("div")
                     .attr("class", "unitButtons")
@@ -299,6 +304,11 @@ function callback(error, worldData, mobileData) {
                     .append("div")
                     .text(function(d) {
                         return d[0];
+                    })
+                    .attr("style", function(d) {
+                      if(d[1] == "mb"){
+                        return "float: left;";
+                      } else {return "float: right;";}
                     });
 
   unitButtons.on("click", function(d) {
@@ -320,6 +330,11 @@ function callback(error, worldData, mobileData) {
 
 
   // comparison buttons
+  var comparisonTitle = d3.select("body")
+                    .append("div")
+                    .attr("class", "comparisonTitle")
+                    .text("Facet Cost By: ");
+
   var comparisonButtons = d3.select("body")
                     .append("div")
                     .attr("class", "comparisonButtons")

@@ -1,15 +1,25 @@
 
 body {
       margin-left: 75px;
+      margin-right: 50px;
+      
     }
 
 #map {
   margin-top: 50px;
 }
 
+div.unitTitle {
+  position: absolute;
+  top: 1285px;
+  left: 90px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
 div.unitButtons {
   position: absolute;
-  top: 950px;
+  top: 1300px;
   left: 75px;
   font-size: 18px;
 }
@@ -23,9 +33,17 @@ div.unitButtons div {
   margin: 15px;
 }
 
+div.comparisonTitle {
+  position: absolute;
+  top: 1385px;
+  left: 90px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
 div.comparisonButtons {
   position: absolute;
-  top: 1100px;
+  top: 1400px;
   left: 75px;
   font-size: 18px;
 }
