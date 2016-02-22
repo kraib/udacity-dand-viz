@@ -35,19 +35,31 @@
         <a href = http://data.worldbank.org/indicator/NY.GNP.PCAP.PP.CD>GNI PPP - World Bank</a>
       </li>
       </ul>
-    These two datasets were combined to get an average cost per GB (USD) and also a relative cost as a percentage of income.  The relative cost is based upon a usage of 2GB per month which I found to be more or less an average for people in the US.  I decided to extend this benchmark to people in all countries based upon the assumption that most people in the US use data without thinking about usage limits, and if people in the rest of the world didn't have to, they would use a similar amount.
+    These two datasets were combined to get an average cost per GB (USD) and also a relative cost as a percentage of income.
     <br><br>
-    While exploring the data it became obvious that the price for 1GB of usage was dramatically different if a person was to consume this incrementally with plans quoted in MB (meaning they have less than 1GB of allowance) versus plans quoted in GB (having at least 1GB of allowance).  Because of this, I further separated cost by a plan's unit type (MB or GB) as many people across the world cannot always afford to buy seemingly cheaper per gigabyte plans.  This helps the viewer to see how difficult it may be for a person at the lower end of country's socioeconomic ladder to afford normal usage.
+    Calculating average cost per GB for each country was not straightforward.  The mobile data set does not include the amount of subscribers for each plan so my average cost is not an average that people are paying but an average of the plans offered.  Initially, I added the total cost for all plans and then divided by the total usage amount.  This gave more weight to plans with larger total cost but with lower cost per GB essentially silencing the more expensive per GB plans that people might be using because they don't have enough money to for bulk plans.  After realizing this I decided to get a cost per GB for each plan and then average these costs over the number of plans.  This gives equal weight to all plans, however this method has its drawbacks too.  If a provider has a plan that is impractically expensive which nobody even uses, it will still get factored into the average cost per GB for that country.  Ultimately I settled on this approach because I think it's safe to assume that providers would be doing their homework and offering plans to cover demand.  Of course not all plans are going to have an equal amount of subscribers but I feel like this method is more balanced.
     <br><br>
-    There are a few caveats to consider while looking at the data.  I didn't include unlimited plans in the data since there was no way to get a cost per GB.  This left a few countries with little data, especially Finland who had all but one unlimited plan.  Also, both pre and post paid plans for a country were lumped together as the price difference was negligible.  Plans including voice and sms were lumped together with pure data plans for the same reason.  Prices with different plan expiration did differ somewhat but not as dramatically as prices across unit type (MB or GB) so these were also combined.  Another thing that was difficult to account for, but worth mentioning, is the network type of the plan.  Networks in 3rd world countries are not as developed as in the 1st world and this can affect price.  One last thing, the data used did not include connection charges or tax (VAT).
+    To try and compensate for any inflation or deflation of the true average cost using my method, I implemented cost buckets.  The first four bucket boundaries are more or less quartile boundaries with the last two buckets accounting for extreme outliers.  If a country's average cost is on the boundary of a bucket it does run the risk of falling into the wrong one.  If it does, it will get colored a slightly lighter or darker hue but the overall distribution shouldn't change much if a few of these occur.
+    <br><br>
+    The relative cost is based upon a usage of 2GB per month which I found to be more or less an average for people in the US.  I decided to extend this benchmark to people in all countries based upon the assumption that most people in the US use data without thinking about usage limits, and if people in the rest of the world didn't have to, they would use a similar amount.
+    <br><br>
+    While exploring the data it became obvious that the price for 1GB of usage was dramatically different if a person was to consume this incrementally with plans quoted in MB (meaning they have less than 1GB of allowance) versus plans quoted in GB (having at least 1GB of allowance).  Because of this, I further separated cost by a plan's unit type (MB or GB) as many people across the world cannot always afford to buy seemingly cheaper bulk usage plans.  This helps the viewer to see how difficult it may be for a person at the lower end of country's socioeconomic ladder to afford normal usage.
+    <br><br>
+    There are a few caveats to consider while looking at the data.  In a few cases I used 2013 or 2012 GNI data where 2014 wasn't available.  I felt this was relatively safe as GNI didn't seem to fluctuate much over the course of a year or two.  Also, I didn't include unlimited plans since there was no way to get a cost per GB.  This left a few countries with sparse data, especially Finland who had all but one unlimited plan.  No distinction was made between pre and post paid plans as the price difference was negligible.  Plans including voice and sms were lumped together with pure data plans for the same reason.  Prices with different plan expiration did differ somewhat but not as dramatically as prices across unit type (MB or GB) so these were also combined.  Another thing that was difficult to account for, but worth mentioning, is the network type of the plan.  Most networks in 3rd world countries are not as developed as in the 1st world and this can affect price.  One last thing, the data used did not include connection charges or tax (VAT).
+
+    <!--
     <h2>Summary
     </h2>This visualization is a choropleth map on a mercator projection of the globe.  There are buttons on the bottom left that enable you to color the choropleth by incremental consumption (MB) or bulk consumption (GB).  Additional buttons allow you to see the average cost in USD per gigabyte or relative cost of typical mobile usage as a percent of the average income for that country.  Again, typical mobile usage is assumed to be approximately 2GB per month based on anecdotal information from undocumented sources on the internet.
     <h2>Design
     </h2>I decided to keep this choropleth map as simple as possible without compromising the overall message.  The hue of the fill is based upon 1 of 6 discrete buckets for the selected combination of comparative metrics.  The dynamic legend that pops-up below the map (once a combination of metrics is selected) allows you to see the values for these discrete buckets.  If you want to know the exact amount in USD or percent, hovering over a country will give that information in a tooltip.
     <h2>Feedback
     </h2>After some initial feedback, I elected to lump data for all expiry together.  Originally there were buttons to facet the map by expiry type but because not all countries have plans with similar expiry this left parts of the map bare with no color (essentially no data).  Also, I limited the information in the tooltip to the buttons selected.  At first the tooltip included all of the information but it was large and visually overwhelming.  Color was changed to represent buckets instead of numerical values which improved color distribution.
+    -->
+
     <div id="map">
     </div>
+
+    <!--
     <h2>Resources
     </h2>
     <ul>
@@ -68,6 +80,7 @@
       </li>
     </ul>
   </p>
+  -->
 
   <script src="js/map.js"></script>
 
