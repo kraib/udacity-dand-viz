@@ -111,19 +111,29 @@ function callback(error, worldData, mobileData) {
   tip = d3.tip().attr('class', 'd3-tip')
                 .html(function(d) {
                   var content = '<p>' + d.properties.name + '</p>';
-                  //debugger;
                   if(d.mobile != undefined){ // make sure we have mobile data
-                    content += '<p>Monthly Income: $' + d.monthlyIncome + ' (USD)</p>';
+
+                    // remove monthly income per feedback here
+                    //content += '<p>Monthly Income: $' + d.monthlyIncome + ' (USD)</p>';
 
                     if(comparisonArray != undefined && unitArray != undefined) { // make sure a comparison and unit has been specified, nothing from the get-go
                       unit = unitArray[1];
                       comparison = comparisonArray[1];
-                      
-                      if(comparison == 'cost' && !isNaN(d.mobile[unit][comparison])){
-                        content += '<p>' + comparisonArray[0] + ': $' + d.mobile[unit]['cost'] + ' (USD)</p>';
-                      }
-                      if(comparison == 'percent.income' && !isNaN(d.mobile[unit][comparison])){
-                        content += '<p>' + comparisonArray[0] + ': ' + d.mobile[unit]['percent.income'] + '%</p>';
+
+                      if(isNaN(d.mobile[unit][comparison])) {
+                        content += "(no plans quoted in " + unit.toUpperCase()+ ")";
+                      } else{
+
+                        // per feedback include both cost and % in tooltip
+                        content += '<p>Average Cost Per Gigabyte: $' + d.mobile[unit]['cost'] + ' (USD)</p>';
+                        content += '<p>Cost as Percent of Income: ' + d.mobile[unit]['percent.income'] + '% (2GB/Month)</p>';
+                        /*if(comparison == 'cost') {
+                          content += '<p>' + comparisonArray[0] + ': $' + d.mobile[unit]['cost'] + ' (USD)</p>';
+                        }
+                        if(comparison == 'percent.income'){
+                          content += '<p>' + comparisonArray[0] + ': ' + d.mobile[unit]['percent.income'] + '%</p>';
+                        }*/
+
                       }
                     } 
                   } else {
@@ -146,6 +156,8 @@ function callback(error, worldData, mobileData) {
                .append('path')
                .attr('d', path)
                .style('fill', 'gray')
+               .style('stroke', 'white') // per feedback make individual countries more visible
+               .style('stroke-width', 0.5)
                .attr("class", "country")
                .on('mouseover', tip.show)
                .on('mouseout', tip.hide);
@@ -285,15 +297,15 @@ function callback(error, worldData, mobileData) {
 
   
   // looking at the valid arguments for updateSelection we can see what data we want in the buttons
-  var unitData = [['Megabyte', 'mb'], ['Gigabyte', 'gb']];
-  var comparisonData = [['USD for 1GB of Usage', 'cost', 'cost.bucket'],
-  ['Percent of Income (2GB/Month)', 'percent.income', 'percent.income.bucket']];
+  var unitData = [['Small Plans (less than 1GB)', 'mb'], ['Large Plans (1GB or more)', 'gb']];
+  var comparisonData = [['Average Cost per Gigabyte', 'cost', 'cost.bucket'],
+  ['Cost as Percent of Income', 'percent.income', 'percent.income.bucket']];
   
   // unit buttons
   var unitTitle = d3.select("body")
                     .append("div")
                     .attr("class", "unitTitle")
-                    .text("Purchase Data In: ");
+                    .text("Plan Size:");
 
   var unitButtons = d3.select("body")
                     .append("div")
@@ -304,12 +316,13 @@ function callback(error, worldData, mobileData) {
                     .append("div")
                     .text(function(d) {
                         return d[0];
-                    })
-                    .attr("style", function(d) {
+                    });
+                    // side-by-side buttons
+                    /*.attr("style", function(d) {
                       if(d[1] == "mb"){
                         return "float: left;";
                       } else {return "float: right;";}
-                    });
+                    });*/
 
   unitButtons.on("click", function(d) {
     // reset all buttons first
@@ -333,7 +346,7 @@ function callback(error, worldData, mobileData) {
   var comparisonTitle = d3.select("body")
                     .append("div")
                     .attr("class", "comparisonTitle")
-                    .text("Facet Cost By: ");
+                    .text("Cost: ");
 
   var comparisonButtons = d3.select("body")
                     .append("div")

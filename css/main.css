@@ -11,7 +11,7 @@ body {
 
 div.unitTitle {
   position: absolute;
-  top: 1285px;
+  top: 1120px;
   left: 90px;
   font-size: 18px;
   font-weight: bold;
@@ -19,7 +19,7 @@ div.unitTitle {
 
 div.unitButtons {
   position: absolute;
-  top: 1300px;
+  top: 1140px;
   left: 75px;
   font-size: 18px;
 }
@@ -35,7 +35,7 @@ div.unitButtons div {
 
 div.comparisonTitle {
   position: absolute;
-  top: 1385px;
+  top: 1320px;
   left: 90px;
   font-size: 18px;
   font-weight: bold;
@@ -43,7 +43,7 @@ div.comparisonTitle {
 
 div.comparisonButtons {
   position: absolute;
-  top: 1400px;
+  top: 1340px;
   left: 75px;
   font-size: 18px;
 }

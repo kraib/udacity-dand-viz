@@ -8,15 +8,17 @@ http://winkelman.github.io/udacity-dand-viz-project/
 
 #### Summary
 
-This visualization is a choropleth map on a mercator projection of the globe.  There are buttons on the bottom left that enable you to color the choropleth by incremental consumption (MB) or bulk consumption (GB) of mobile broadband.  Additional buttons allow you to see the average cost in USD per gigabyte or relative cost of typical mobile usage as a percent of the average income for that country.  Typical mobile usage is assumed to be approximately 2GB per month based on anecdotal information from undocumented sources on the internet.
+This visualization is a choropleth map on a mercator projection of the globe.  There are buttons on the bottom left that enable you to color the choropleth by plan size.  Additional buttons allow you to see the average cost in per gigabyte in USD or relative cost of typical mobile usage as a percent of the average income for that country.  Typical mobile usage is assumed to be approximately 2GB per month based on anecdotal information from undocumented sources on the internet.
 
 #### Design
 
-I decided to keep this choropleth map as simple as possible without compromising the overall message.  The hue of the fill is based upon 1 of 6 discrete buckets for the selected combination of comparative metrics.  The dynamic legend that pops-up below the map (once a combination of metrics is selected) allows you to see the values for these discrete buckets.  If you want to know the exact amount in USD or percent, hovering over a country will give that information in a tooltip.
+I decided to keep this choropleth map as simple as possible without compromising the overall message.  The hue of the fill is based upon 1 of 6 discrete buckets for the combined selection.  The dynamic legend that pops-up below the map (once a combination is selected) allows you to see the values for these discrete buckets.  If you want to know the exact amount in USD or percent, hovering over a country will give that information in a tooltip.
 
 #### Feedback
 
 After some initial feedback, I elected to lump data for all expiry together.  Originally there were buttons to facet the map by expiry type but because not all countries have plans with similar expiry this left parts of the map bare with no color (essentially no data).  Also, I limited the information in the tooltip to the buttons selected.  At first the tooltip included all of the information but it was large and visually overwhelming.  Color was changed to represent buckets instead of numerical values which improved color distribution.
+
+From secondary feedback, I increased the size of the stoke on the map.  This helped to make each country more visible.  Also, I excluded monthly income information but included both cost per gigabyte and cost as percent of income for the plan size selected.  This helped to cut down on the amount of back and forth between button clicking and seeing relevant information in the tooltip.
     
 #### Resources
 
