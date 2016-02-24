@@ -4,7 +4,7 @@
 This is the fifth project for the Data Analyst Nanodegree and accompanies the [Data Visualization and D3.js](https://www.udacity.com/course/data-visualization-and-d3js--ud507) course from Udacity.  In this project we use d3.js and design principles to create a data visualization that tells a story an audience.  The visualization is iterated on a few times which allows us to incorporate feedback from peers in the course.
 
 The interactive graphic can be viewed here:
-http://winkelman.github.io/udacity-dand-viz-project/
+http://bl.ocks.org/winkelman/raw/f097704c6deddba376e3/
 
 #### Summary
 
