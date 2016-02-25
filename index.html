@@ -24,65 +24,26 @@
   The Cost of Mobile Broadband
   </h1>
   <p>
-    How do prices for mobile data vary across the world?  Is it difficult for people in other countries to afford what we in the US would consider normal usage?  The graphic below attempts to answer these questions visually by way of a dynamic choropleth map.
-    <br><br>
-    The datasets used to generate the map come from 2 separate sources:
-    <ul>
-      <li> 
-        <a href = https://www.google.com/fusiontables/DataSource?docid=1YuRAbIpbt4AfrLg2Gzuj7ioAa5RsHmDKN-FYe9kK#rows:id=1>2014 Mobile Broadband Prices - Google</a> (http://policybythenumbers.blogspot.com/)
-      </li>
-      <li>
-        <a href = http://data.worldbank.org/indicator/NY.GNP.PCAP.PP.CD>Gross National Income Per Capita - World Bank</a>
-      </li>
-      </ul>
-    These two datasets were combined to get an average cost per GB (USD) as well as a relative cost as a percentage of average income.
-    <br><br>
-    Average cost per GB was calculated based upon the plans offered in that country.  The mobile dataset did not include the number of subscribers for each plan, so my average cost is not what people are paying but rather what is offered.  Giving equal weight to each plan does have it's limitations however.  It's reasonable to assume that not all plans will have a similar number of subscribers, but if a provider has a plan that is so expensive that nobody uses it, it will still get factored into the average cost per GB for that country.  Despite this possibility, I'm assuming that providers do a fair amount of homework and offer plans based upon existing demand which is being met in the marketplace with subscriptions/purchases.
-    <br><br>
-    Relative cost is based upon a usage of 2GB per month which I found to be more or less an average for people in the US.  I decided to extend this benchmark to people in all countries based upon the assumption that most people in the US use data without thinking about usage limits, and if people in the rest of the world didn't have to, they would use a similar amount.
-    <br><br>
-    To compensate for any errors in calculating precise costs or percentages, I decided to use buckets.  This also helped to distribute color across the map.  The first three buckets correspond to the first 3 quartiles, with the last three buckets accounting for the final quartile and extreme outliers.
-    <br><br>
-    While exploring the data, it became obvious that the price for 1GB of usage was dramatically different if a person was to consume this incrementally with plans quoted in MB (meaning they have less than 1GB of allowance) versus plans quoted in GB (having at least 1GB of allowance).  Because of this, I further separated cost by a plan's unit type (MB or GB) or size.  This helps the viewer to see how difficult it may be for a person at the lower end of country's socioeconomic ladder to afford normal usage.
-    <br><br>
-    There are some caveats to consider while looking at the data.  In a few cases I used 2013 or 2012 GNI where 2014 wasn't available.  I felt this was relatively safe as GNI didn't seem to fluctuate too much over the course of one or two years.  Unlimited plans were not included since there was no easy way to get a cost per GB.  This left a few countries with sparse data, especially Finland who had all but one unlimited plan.  No distinction was made between pre and post paid plans as the difference in price was negligible.  Plans including voice and sms were lumped together with data only plans for the same reason.  Although price across different plan expiration did vary somewhat, it did not as dramatically as price across unit type/plan size so these were also combined.  Another thing that was difficult to account for but worth mentioning, is the network type of the plan.  <!--This varied somewhat within each country but this variation wasn't a big factor in price.-->  Most networks in 3rd world countries are not as developed as in the 1st world which can affect price.  Finally, the costs do not include connection charges or tax (VAT).
-
-    <!--
-    <h2>Summary
-    </h2>This visualization is a choropleth map on a mercator projection of the globe.  There are buttons on the bottom left that enable you to color the choropleth by incremental consumption (MB) or bulk consumption (GB).  Additional buttons allow you to see the average cost in USD per gigabyte or relative cost of typical mobile usage as a percent of the average income for that country.  Again, typical mobile usage is assumed to be approximately 2GB per month based on anecdotal information from undocumented sources on the internet.
-    <h2>Design
-    </h2>I decided to keep this choropleth map as simple as possible without compromising the overall message.  The hue of the fill is based upon 1 of 6 discrete buckets for the selected combination of comparative metrics.  The dynamic legend that pops-up below the map (once a combination of metrics is selected) allows you to see the values for these discrete buckets.  If you want to know the exact amount in USD or percent, hovering over a country will give that information in a tooltip.
-    <h2>Feedback
-    </h2>After some initial feedback, I elected to lump data for all expiry together.  Originally there were buttons to facet the map by expiry type but because not all countries have plans with similar expiry this left parts of the map bare with no color (essentially no data).  Also, I limited the information in the tooltip to the buttons selected.  At first the tooltip included all of the information but it was large and visually overwhelming.  Color was changed to represent buckets instead of numerical values which improved color distribution.
-    -->
-
-    <div id="map">
-    </div>
-
-    <!--
-    <h2>Resources
-    </h2>
-    <ul>
-      <li>
-        <a href = https://github.com/mbostock/d3/wiki/API-Reference>D3 API</a>
-      </li>
-      <li>
-        <a href = http://labratrevenge.com/d3-tip/>D3-tip by Caged</a>
-      </li>
-      <li>
-        <a href = http://bl.ocks.org/mbostock/4573883>Threshold Key by Mike Bostock</a>
-      </li>
-      <li>
-        <a href = http://www.jeromecukier.net/blog/2011/08/11/d3-scales-and-color/>Jerome Cukier's D3 Articles</a>
-      </li>
-      <li>
-        <a href = https://www.udacity.com/courses/ud507/>Udacity's Data Visualization and D3.js course</a>
-      </li>
-    </ul>
+    Having lived in a third world country, I remember the disparity in mobile access.  This was over five years ago but it got me thinking.  How do prices for mobile data vary across the world?  Just how difficult is it for the average person in other countries to afford normal usage? The visualization below helps to illustrate this with a choropleth map.  The difference in cost between small and large plans can be compared, and cost itself can be seen as either a dollar amount per gigabyte, or as a percentage of the average income for that country.
   </p>
-  -->
+  <div id="map">
+  </div>
+  <!--<div id="legend">
+  </div>-->
+  <div id="control-panel">
+  </div>
+  <p>
+    Looking at the average cost per gigabyte, it's not easy to see any patterns emerging from the map.  However, if we view cost as a percentage of income, there is a clear swath of darker color starting from the bottom left of the map extending up and towards the right.  This band covers a good number of lesser developed countries in South America, Africa, and Asia where mobile broadband for the average person appears to be practically out of reach.  North America (with the exception of Mexico), Europe, and Australia have a lighter hue indicating that most people in these areas can easily afford mobile broadband.
+  </p>
 
   <script src="js/map.js"></script>
 
+  Methods and additional project information on my
+  <a href = "https://github.com/winkelman/udacity-dand-viz-project">GitHub.</a>
+  <br><br>
+  Sources:
+  <a style="margin-left:0.5em" href = "https://www.google.com/fusiontables/DataSource?docid=1YuRAbIpbt4AfrLg2Gzuj7ioAa5RsHmDKN-FYe9kK#rows:id=1">2014 Mobile Broadband Pricing - Google</a>
+  <a style="margin-left:0.5em" href = "http://data.worldbank.org/indicator/NY.GNP.PCAP.PP.CD">GNI Per Capita - World Bank</a>
+  </p>
 </body>
 </html>

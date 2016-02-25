@@ -6,56 +6,64 @@ body {
     }
 
 #map {
-  margin-top: 50px;
+  margin-top: 40px;
 }
 
-div.unitTitle {
-  position: absolute;
-  top: 1120px;
-  left: 90px;
-  font-size: 18px;
+#control-panel {
+  display: flex;
+  position: relative;
+}
+
+
+
+.buttons{
+  -webkit-border-radius: 2;
+  -moz-border-radius: 2;
+  border-radius: 2px;
+  color: #000000;
+  font-size: 12px;
   font-weight: bold;
+  padding: 2px;
+  margin: 4px;
+  text-decoration: none;
+}
+
+.button-default {
+  background: #e6e4dd;
+  background-image: -webkit-linear-gradient(top, #e6e4dd, #ababab);
+  background-image: -moz-linear-gradient(top, #e6e4dd, #ababab);
+  background-image: -ms-linear-gradient(top, #e6e4dd, #ababab);
+  background-image: -o-linear-gradient(top, #e6e4dd, #ababab);
+  background-image: linear-gradient(to bottom, #e6e4dd, #ababab);
+}
+
+.button-select {
+  background: #f08d4a
+}
+
+
+
+div.unitTitle {
+  margin: 5px 0px 5px 5px;
+  padding: 30px 0px 30px 0px;
 }
 
 div.unitButtons {
-  position: absolute;
-  top: 1140px;
-  left: 75px;
-  font-size: 18px;
-}
-
-div.unitButtons div {
-  font-weight: bold;
-  text-align: center;
-  border-radius: 6px;
-  background-color: LightGray;
-  padding: 5px;
-  margin: 15px;
+  margin: 5px;
+  padding: 25px 0px 30px 0px;
 }
 
 div.comparisonTitle {
-  position: absolute;
-  top: 1320px;
-  left: 90px;
-  font-size: 18px;
-  font-weight: bold;
+  margin: 5px 0px 5px 30px;
+  padding: 30px 0px 30px 0px;
 }
 
 div.comparisonButtons {
-  position: absolute;
-  top: 1340px;
-  left: 75px;
-  font-size: 18px;
+  margin: 5px;
+  padding: 25px 0px 30px 0px;
 }
 
-div.comparisonButtons div {
-  font-weight: bold;
-  text-align: center;
-  border-radius: 6px;
-  background-color: LightGray;
-  padding: 5px;
-  margin: 15px;
-}
+
 
 .country:hover {
     stroke: yellow !important;

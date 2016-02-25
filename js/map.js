@@ -146,7 +146,17 @@ function callback(error, worldData, mobileData) {
                 });
 
   map.call(tip);
-  tip.direction('s');
+  tip.direction(function(d) {
+    west = ["CHL", "ARG"];
+    east = ["FJI"];
+    if(west.indexOf(d.id) != -1){
+      return "w";
+    } else{
+      if(east.indexOf(d.id) != -1){
+      return "e";
+      } else{return "s";}
+    }
+  });
 
 
   // create map
@@ -249,13 +259,13 @@ function callback(error, worldData, mobileData) {
                           return "$" + d;}
                       });*/
 
-    var legend = d3.select("#map")
+    var legend = d3.select("#control-panel")
                     .append("svg") // separate svg for the legend
                     .attr("class", "legend")
-                    .attr("width", width + margin)
+                    .attr("width", width/2)
                     .attr("height", 75)
                     .append("g")
-                    .attr("transform", "translate(" + (-200 + width/2) + "," + 25 + ")");
+                    .attr("transform", "translate(250, " + 25 + ")");
 
     /*var legend = svg.append("g")
                     .attr("class", "legend")
@@ -289,7 +299,11 @@ function callback(error, worldData, mobileData) {
     legend.call(xAxis).append("text")
                  .attr("class", "caption")
                  .attr("y", -5)
-                 .text(comparisonArr[0]);
+                 .text(function(d){
+                  if(comparisonArr[1] == 'cost'){
+                    return "USD";
+                  } else {return "%";}
+                 });
 
 
   } // updateSelection closure
@@ -302,76 +316,83 @@ function callback(error, worldData, mobileData) {
   ['Cost as Percent of Income', 'percent.income', 'percent.income.bucket']];
   
   // unit buttons
-  var unitTitle = d3.select("body")
+  var unitTitle = d3.select("#control-panel")
                     .append("div")
                     .attr("class", "unitTitle")
                     .text("Plan Size:");
 
-  var unitButtons = d3.select("body")
+  var unitButtons = d3.select("#control-panel")
                     .append("div")
                     .attr("class", "unitButtons")
-                    .selectAll("div")
+                    .selectAll("button")
                     .data(unitData)
                     .enter()
-                    .append("div")
+                    .append("button")
                     .text(function(d) {
                         return d[0];
-                    });
+                    })
                     // side-by-side buttons
-                    /*.attr("style", function(d) {
+                    .attr("style", function(d) {
                       if(d[1] == "mb"){
                         return "float: left;";
                       } else {return "float: right;";}
-                    });*/
+                    })
+                    .attr("class", "buttons")
+                    .classed("button-default", true);
 
   unitButtons.on("click", function(d) {
     // reset all buttons first
     d3.select(".unitButtons")
-                  .selectAll("div")
+                  .selectAll("button")
+                  .classed("button-select", false)
+                  .classed("button-default", true)
                   .transition()
-                  .duration(600)
-                  .style("background", "LightGray")
-                  .style("color", "black");
+                  .duration(600);
     d3.select(this)
+                  .classed("button-select", true)
                   .transition()
-                  .duration(600)
-                  .style("background", "rgb(204, 122, 0)")
-                  .style("color", "white");
+                  .duration(600);
     unitArray = d;
     updateSelection([unitArray, comparisonArray]);
     });
 
 
   // comparison buttons
-  var comparisonTitle = d3.select("body")
+  var comparisonTitle = d3.select("#control-panel")
                     .append("div")
                     .attr("class", "comparisonTitle")
                     .text("Cost: ");
 
-  var comparisonButtons = d3.select("body")
+  var comparisonButtons = d3.select("#control-panel")
                     .append("div")
                     .attr("class", "comparisonButtons")
-                    .selectAll("div")
+                    .selectAll("button")
                     .data(comparisonData)
                     .enter()
-                    .append("div")
+                    .append("button")
                     .text(function(d) {
                         return d[0];
-                    });
+                    })
+                    .attr("style", function(d) {
+                      if(d[1] == "cost"){
+                        return "float: left;";
+                      } else {return "float: right;";}
+                    })
+                    .attr("class", "buttons")
+                    .classed("button-default", true);;
 
   comparisonButtons.on("click", function(d) {
     // reset all buttons first
     d3.select(".comparisonButtons")
-                  .selectAll("div")
+                  .selectAll("button")
+                  .classed("button-select", false)
+                  .classed("button-default", true)
                   .transition()
-                  .duration(600)
-                  .style("background", "LightGray")
-                  .style("color", "black");
+                  .duration(600);
     d3.select(this)
+                  .classed("button-select", true)
                   .transition()
-                  .duration(600)
-                  .style("background", "rgb(204, 122, 0)")
-                  .style("color", "white");
+                  .duration(600);
     comparisonArray = d;
     updateSelection([unitArray, comparisonArray]);
     });

@@ -1,5 +1,10 @@
 references
 
+http://policybythenumbers.blogspot.com/
+
+http://data.worldbank.org/indicator/NY.GNP.PCAP.PP.CD
+
+
 http://www.cartographicperspectives.org/index.php/journal/article/view/cp78-sack-et-al/1359
 
 http://stackoverflow.com/questions/4964456/make-javascript-do-list-comprehension
@@ -15,3 +20,5 @@ https://github.com/Caged/d3-tip
 http://www.jeromecukier.net/blog/2011/08/11/d3-scales-and-color/
 
 http://bl.ocks.org/mbostock/4573883
+
+http://css3buttongenerator.com/
