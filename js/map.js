@@ -1,6 +1,6 @@
 var margin = 75;
-    width = 1800 - margin,
-    height = 800 - margin;
+    width = 1500 - margin,
+    height = 650 - margin;
 
 var svg = d3.select("#map")
     .append("svg")
@@ -10,8 +10,8 @@ var svg = d3.select("#map")
 var map = svg.append('g');
 
 var projection = d3.geo.mercator()
-                  .scale(260)
-                  .translate([width/2, height/1.7]);
+                  .scale(230)
+                  .translate([width/2, height/1.6]);
 
 var path = d3.geo.path().projection(projection);
 
@@ -147,10 +147,13 @@ function callback(error, worldData, mobileData) {
 
   map.call(tip);
   tip.direction(function(d) {
-    west = ["CHL", "ARG"];
-    east = ["FJI"];
-    if(west.indexOf(d.id) != -1){
-      return "w";
+    //console.log(d.id)
+    southeast = ["CAN", "USA"];
+    east = ["MEX", "GTM", "HND", "SLV", "NIC", "HTI", "DOM",
+    "CHL", "ARG", "COL", "ECU", "PER", "VEN", "BOL", "BRA", "PRY",
+    "FJI",];
+    if(southeast.indexOf(d.id) != -1){
+      return "se";
     } else{
       if(east.indexOf(d.id) != -1){
       return "e";
@@ -259,13 +262,13 @@ function callback(error, worldData, mobileData) {
                           return "$" + d;}
                       });*/
 
-    var legend = d3.select("#control-panel")
+    var legend = d3.select("#legend")
                     .append("svg") // separate svg for the legend
                     .attr("class", "legend")
-                    .attr("width", width/2)
+                    .attr("width", width)
                     .attr("height", 75)
                     .append("g")
-                    .attr("transform", "translate(250, " + 25 + ")");
+                    .attr("transform", "translate(" + (width*4/7) + ", " + 25 + ")");
 
     /*var legend = svg.append("g")
                     .attr("class", "legend")
@@ -314,28 +317,27 @@ function callback(error, worldData, mobileData) {
   var unitData = [['Small Plans (less than 1GB)', 'mb'], ['Large Plans (1GB or more)', 'gb']];
   var comparisonData = [['Average Cost per Gigabyte', 'cost', 'cost.bucket'],
   ['Cost as Percent of Income', 'percent.income', 'percent.income.bucket']];
-  
+ 
+  // button container 
+  var container = d3.select("body")
+                    .append("div")
+                    .attr("class", "buttonContainer");
+
   // unit buttons
-  var unitTitle = d3.select("#control-panel")
+  var unitTitle = d3.select(".buttonContainer")
                     .append("div")
                     .attr("class", "unitTitle")
-                    .text("Plan Size:");
+                    .text("Plan Size");
 
-  var unitButtons = d3.select("#control-panel")
+  var unitButtons = d3.select(".buttonContainer")
                     .append("div")
                     .attr("class", "unitButtons")
-                    .selectAll("button")
+                    .selectAll("div")
                     .data(unitData)
                     .enter()
-                    .append("button")
+                    .append("div")
                     .text(function(d) {
                         return d[0];
-                    })
-                    // side-by-side buttons
-                    .attr("style", function(d) {
-                      if(d[1] == "mb"){
-                        return "float: left;";
-                      } else {return "float: right;";}
                     })
                     .attr("class", "buttons")
                     .classed("button-default", true);
@@ -343,7 +345,7 @@ function callback(error, worldData, mobileData) {
   unitButtons.on("click", function(d) {
     // reset all buttons first
     d3.select(".unitButtons")
-                  .selectAll("button")
+                  .selectAll("div")
                   .classed("button-select", false)
                   .classed("button-default", true)
                   .transition()
@@ -358,25 +360,20 @@ function callback(error, worldData, mobileData) {
 
 
   // comparison buttons
-  var comparisonTitle = d3.select("#control-panel")
+  var comparisonTitle = d3.select(".buttonContainer")
                     .append("div")
                     .attr("class", "comparisonTitle")
-                    .text("Cost: ");
+                    .text("Cost");
 
-  var comparisonButtons = d3.select("#control-panel")
+  var comparisonButtons = d3.select(".buttonContainer")
                     .append("div")
                     .attr("class", "comparisonButtons")
-                    .selectAll("button")
+                    .selectAll("div")
                     .data(comparisonData)
                     .enter()
-                    .append("button")
+                    .append("div")
                     .text(function(d) {
                         return d[0];
-                    })
-                    .attr("style", function(d) {
-                      if(d[1] == "cost"){
-                        return "float: left;";
-                      } else {return "float: right;";}
                     })
                     .attr("class", "buttons")
                     .classed("button-default", true);;
@@ -384,7 +381,7 @@ function callback(error, worldData, mobileData) {
   comparisonButtons.on("click", function(d) {
     // reset all buttons first
     d3.select(".comparisonButtons")
-                  .selectAll("button")
+                  .selectAll("div")
                   .classed("button-select", false)
                   .classed("button-default", true)
                   .transition()

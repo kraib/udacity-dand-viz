@@ -20,30 +20,37 @@
 
 </head>
 <body>
+  <div id="info" style="width:300px; float:left;">
   <h1>
   The Cost of Mobile Broadband
   </h1>
   <p>
-    Having lived in a third world country, I remember the disparity in mobile access.  This was over five years ago but it got me thinking.  How do prices for mobile data vary across the world?  Just how difficult is it for the average person in other countries to afford normal usage? The visualization below helps to illustrate this with a choropleth map.  The difference in cost between small and large plans can be compared, and cost itself can be seen as either a dollar amount per gigabyte, or as a percentage of the average income for that country.
+    Having lived in a third world country, I clearly remember the limited access to mobile usage. This was some time ago but it got me thinking. How do prices for mobile data vary across the world? Just how difficult is it for the average person in another country to afford normal usage? The visualization below helps to illustrate this with a choropleth map. The difference in cost between small and large plans can be compared, and cost itself can be seen as either a dollar amount per gigabyte, or as a percentage of the average income for that country.
   </p>
-  <div id="map">
-  </div>
-  <!--<div id="legend">
-  </div>-->
-  <div id="control-panel">
-  </div>
   <p>
     Looking at the average cost per gigabyte, it's not easy to see any patterns emerging from the map.  However, if we view cost as a percentage of income, there is a clear swath of darker color starting from the bottom left of the map extending up and towards the right.  This band covers a good number of lesser developed countries in South America, Africa, and Asia where mobile broadband for the average person appears to be practically out of reach.  North America (with the exception of Mexico), Europe, and Australia have a lighter hue indicating that most people in these areas can easily afford mobile broadband.
   </p>
+  </div>
+
+  <div id="map" style="float:right;">
+  </div>
+
+  <div id="legend">
+  </div>
+
+  <div id="footer">
+  <p>
+  Methods and additional project information on my
+  <a href = "https://github.com/winkelman/udacity-dand-viz-project">GitHub.</a>
+  </p>
+  <p>
+  Data Sources:
+  <a href = "https://www.google.com/fusiontables/DataSource?docid=1YuRAbIpbt4AfrLg2Gzuj7ioAa5RsHmDKN-FYe9kK#rows:id=1">2014 Mobile Broadband Pricing - Google</a>
+  <a style="margin-left:0.5em" href = "http://data.worldbank.org/indicator/NY.GNP.PCAP.PP.CD">GNI Per Capita - World Bank</a>
+  </p>
+  </div>
 
   <script src="js/map.js"></script>
 
-  Methods and additional project information on my
-  <a href = "https://github.com/winkelman/udacity-dand-viz-project">GitHub.</a>
-  <br><br>
-  Sources:
-  <a style="margin-left:0.5em" href = "https://www.google.com/fusiontables/DataSource?docid=1YuRAbIpbt4AfrLg2Gzuj7ioAa5RsHmDKN-FYe9kK#rows:id=1">2014 Mobile Broadband Pricing - Google</a>
-  <a style="margin-left:0.5em" href = "http://data.worldbank.org/indicator/NY.GNP.PCAP.PP.CD">GNI Per Capita - World Bank</a>
-  </p>
 </body>
 </html>

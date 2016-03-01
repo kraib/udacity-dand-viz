@@ -1,19 +1,33 @@
 
 body {
-      margin-left: 75px;
-      margin-right: 50px;
-      
+      margin-left: 75px;      
     }
 
 #map {
-  margin-top: 40px;
+  margin-top: 10px;
 }
 
-#control-panel {
-  display: flex;
-  position: relative;
+.buttonContainer {
+  position: absolute;
+  top: 450px;
+  left: 480px;
 }
 
+div.unitTitle, div.comparisonTitle {
+  font-weight: bold;
+}
+div.comparisonTitle {margin-top: 20px;}
+
+div.unitButtons, div.comparisonButtons {
+  font-size: 18px;
+}
+
+div.unitButtons div, div.comparisonButtons div {
+  font-weight: bold;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+}
 
 
 .buttons{
@@ -43,28 +57,6 @@ body {
 
 
 
-div.unitTitle {
-  margin: 5px 0px 5px 5px;
-  padding: 30px 0px 30px 0px;
-}
-
-div.unitButtons {
-  margin: 5px;
-  padding: 25px 0px 30px 0px;
-}
-
-div.comparisonTitle {
-  margin: 5px 0px 5px 30px;
-  padding: 30px 0px 30px 0px;
-}
-
-div.comparisonButtons {
-  margin: 5px;
-  padding: 25px 0px 30px 0px;
-}
-
-
-
 .country:hover {
     stroke: yellow !important;
     stroke-width: 2px !important;
@@ -83,4 +75,10 @@ div.comparisonButtons {
 /* the actual legend svg-g element needs to be silenced for whatever reason? */
 .legend path {
   display: none;
+}
+
+#footer {
+  position: fixed;
+  bottom: 0;
+  font-size: 12px;
 }
