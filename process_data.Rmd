@@ -18,7 +18,7 @@ Setting local directory and suppressing scientific notation...
 ```{r set_directory, echo=FALSE}
 # make sure local path is same as this file
 getwd()
-#setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project/data"))
+setwd(paste0(getwd(), "/GitHub/udacity-dand-viz-project/data"))
 list.files()
 # suppress scientific notation, just a hack i guess...
 options(scipen=999)
@@ -68,7 +68,7 @@ combine <- merge(mobile, gni_usd, by.x = "Code",
 
 Let's get rid of some columns...
 ```{r prune_columns}
-combine <- combine %>% select(-Region, -ISP, -Pre.or.Post.paid, -Usage.Allowance..MB.,
+combine <- combine %>% select(-ISP, -Pre.or.Post.paid, -Usage.Allowance..MB.,
                               -Tariff.currency, -Monthly.cost..specified.currency.,
                              -Pack.Cost..specified.currency., -Voice.mins.included.,
                              -Validity..days., -Monthly.cost..US.., -Pack.Cost..US..,
@@ -80,7 +80,7 @@ combine <- combine %>% select(-Region, -ISP, -Pre.or.Post.paid, -Usage.Allowance
 Rename and format columns...
 ```{r rename_and_format_columns}
 names(combine)
-names(combine) <- c("country.code", "country.name", "usage.amount",
+names(combine) <- c("country.code", "region", "country.name", "usage.amount",
                     "usage.unit", "cost.usd.gb", "gni")
 
 str(combine)
@@ -179,7 +179,7 @@ sum(is.na(combine$cost.usd.gb))
 Now let's group by country and usage unit to get the average cost in USD for GB or MB based plans...
 ```{r final_df_costpergb}
 # need to groupby 'gni.month' and 'country.name' here or it gets removed in the chain
-final_df <- combine %>% group_by(country.code, usage.unit,
+final_df <- combine %>% group_by(country.code, region, usage.unit,
                                  country.name, gni.month) %>%
   summarise(count = n(), total.cost.gb.usd = sum(cost.usd.gb)) %>%
   mutate(cost.usd.per.gb = total.cost.gb.usd/count) %>%
@@ -192,7 +192,7 @@ Let's spread this data into one row per country and name accordingly...
 final_df <- spread(final_df, usage.unit, cost.usd.per.gb)
 
 names(final_df)
-names(final_df) <- c("country.code", "country.name", "gni.month",
+names(final_df) <- c("country.code", "region", "country.name", "gni.month",
                     "gb.cost.gb", "gb.cost.mb")
 ```
 
@@ -249,12 +249,6 @@ final_df$percent.income.mb.bucket <- cut(final_df$percent.income.mb,
                                      labels = c('0-3', '3-7', '7-30', '30-50',
                                                  '50-80', '80-'))
 final_df$percent.income.mb.bucket <- as.character(final_df$percent.income.mb.bucket)
-```
-
-
-Add unlimited and hourly plan counts?
-```{r add_unlimited_hourly}
-#
 ```
 
 
