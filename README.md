@@ -26,7 +26,7 @@ I realized that there were some errors in currency codes for the 2015 mobile dat
 
 [Third Iteration](http://bl.ocks.org/winkelman/raw/0e4d29737b668afd2805/)
 
-The page needed to be scrolled down to be able to see the buttons and legend.  Text was moved to the left so that all things pertaining to the graphic were in one column.  The legend and the buttons were also moved to the top for ease.  Because the map was originally bare, it wasn't apparent that it could be faceted by color.  I initiated the map by comparing small plans and cost per gigabyte, then after a brief delay by large plans and cost as a percentage of income.  This also helped to emphasizes the overall narrative of the visualization.
+The page needed to be scrolled down to be able to see the buttons and legend.  Text was moved to the left so that the map, legend, and buttons could be all in one column.  The legend and the buttons were also moved to the top for ease.  Because the map was originally bare, it wasn't apparent that it could be faceted by color.  I initiated the map by comparing small plans and cost per gigabyte, then after a brief delay by large plans and cost as a percentage of income.  This also helped to emphasizes the overall narrative of the visualization.  Finally the color was made to span only one hue so that buckets could be better distinguished.
 
 #### Methods
 
