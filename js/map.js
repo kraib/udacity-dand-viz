@@ -1,17 +1,17 @@
 var margin = 75;
-    width = 1800 - margin,
-    height = 800 - margin;
+    width = 1500 - margin,
+    height = 700 - margin;
 
 var svg = d3.select("#map")
-    .append("svg")
+    .insert("svg", ":first-child")
     .attr("width", width + margin)
     .attr("height", height + margin)
 
 var map = svg.append('g');
 
 var projection = d3.geo.mercator()
-                  .scale(260)
-                  .translate([width/2, height/1.7]);
+                  .scale(240)
+                  .translate([width/2, height/1.6]);
 
 var path = d3.geo.path().projection(projection);
 
@@ -265,7 +265,7 @@ function callback(error, worldData, mobileData) {
                     .attr("width", width/2)
                     .attr("height", 75)
                     .append("g")
-                    .attr("transform", "translate(250, " + 25 + ")");
+                    .attr("transform", "translate(0, " + 33 + ")");
 
     /*var legend = svg.append("g")
                     .attr("class", "legend")
@@ -319,7 +319,7 @@ function callback(error, worldData, mobileData) {
   var unitTitle = d3.select("#control-panel")
                     .append("div")
                     .attr("class", "unitTitle")
-                    .text("Plan Size:");
+                    .text("Size:");
 
   var unitButtons = d3.select("#control-panel")
                     .append("div")
@@ -361,7 +361,7 @@ function callback(error, worldData, mobileData) {
   var comparisonTitle = d3.select("#control-panel")
                     .append("div")
                     .attr("class", "comparisonTitle")
-                    .text("Cost: ");
+                    .text("Cost:");
 
   var comparisonButtons = d3.select("#control-panel")
                     .append("div")
