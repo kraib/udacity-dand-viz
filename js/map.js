@@ -2,16 +2,20 @@ var margin = 75;
     width = 1500 - margin,
     height = 700 - margin;
 
-var svg = d3.select("#map")
-    .insert("svg", ":first-child")
+var legendWidth = width/2
+
+var svg = d3.select("#viz")
+    .append("svg") // .insert("svg", "#legend + *" or ":first-child")
     .attr("width", width + margin)
     .attr("height", height + margin)
+    .attr("class", "svg-map")
 
-var map = svg.append('g');
+var map = svg.append('g')
+             .attr("id", "map");
 
 var projection = d3.geo.mercator()
                   .scale(240)
-                  .translate([width/2, height/1.6]);
+                  .translate([width/2, height/1.6]); //1.6
 
 var path = d3.geo.path().projection(projection);
 
@@ -91,6 +95,7 @@ function callback(error, worldData, mobileData) {
         }
       }
     }
+
     // debug for unmatched geojson countries
     //else {console.log(countryCode + " " + worldData.features[index].properties.name)}
 
@@ -148,7 +153,7 @@ function callback(error, worldData, mobileData) {
 
   map.call(tip);
   tip.direction(function(d) {
-    west = ["CHL", "ARG"];
+    west = []; //["CHL", "ARG"];
     east = ["FJI"];
     if(west.indexOf(d.id) != -1){
       return "w";
@@ -209,7 +214,8 @@ function callback(error, worldData, mobileData) {
     // color scale
     var color = d3.scale.ordinal()
                 .domain(domain)
-                .range(colorbrewer['YlGnBu']['9'].slice(3));
+                .range(colorbrewer['Greens']['9'].slice(3));
+
 
     // fill in paths with color
     map.selectAll('path')
@@ -224,6 +230,26 @@ function callback(error, worldData, mobileData) {
               } else{return "DimGray"}
              });
 
+
+    // loop through colors on updated selection?? HOW TO DO?
+    /*
+    buckets = color.domain();
+    for(index in buckets) {
+      map.selectAll('path')
+             .transition()
+             .duration(1000)
+             .style('fill', function(d){
+                var hasMobile = ('mobile' in d);
+                //debugger;
+                // check if mobile data and bucket value for unit and comparison
+                if(hasMobile && (d.mobile[unit][comparisonBucket] == buckets[index])) {
+                  //debugger;
+                  return "orange";
+                  //return color(buckets[index]);
+                } else{return "DimGray"}
+             });
+    }
+    */
 
 
     // create legend for the selection
@@ -244,14 +270,14 @@ function callback(error, worldData, mobileData) {
 
     var x = d3.scale.linear()
                     .domain([0, 100])
-                    .range([0, 600]);
+                    .range([0, legendWidth]);
 
     var xAxis = d3.svg.axis()
                       .scale(x)
-                      .orient("bottom")
-                      .tickSize(15)
+                      .orient("top")
+                      .tickSize(5) // text up or down
                       .tickValues(threshold.domain())
-                      .tickPadding(15);
+                      .tickPadding(0); // vertical offset from axis
                       // percent symbol doesn't fit well with axis
                       /*.tickFormat(function(d) {
                         if(scheme == 'relativeBucket') {
@@ -260,13 +286,15 @@ function callback(error, worldData, mobileData) {
                           return "$" + d;}
                       });*/
 
-    var legend = d3.select("#control-panel")
-                    .append("svg") // separate svg for the legend
+    var legend = d3.select("#legend")
+                    .insert("svg") // separate svg for the legend
                     .attr("class", "legend")
-                    .attr("width", width/2)
-                    .attr("height", 75)
+                    .attr("width", legendWidth)
+                    //.style("margin-left", "" + (width - legendWidth)/4 + "")
+                    //.style("padding-left", "" + (width - legendWidth)/4 + "")
+                    .attr("height", 65)
                     .append("g")
-                    .attr("transform", "translate(0, " + 33 + ")");
+                    .attr("transform", "translate(0, " + 40 + ")");
 
     /*var legend = svg.append("g")
                     .attr("class", "legend")
@@ -287,7 +315,7 @@ function callback(error, worldData, mobileData) {
           .attr("x", function(d) {
             return x(d[0]);
           })
-          .attr("height", 20)
+          .attr("height", 22)
           .attr("width", function(d) {
             return x(d[1]) - x(d[0]);
           })
@@ -299,7 +327,8 @@ function callback(error, worldData, mobileData) {
 
     legend.call(xAxis).append("text")
                  .attr("class", "caption")
-                 .attr("y", -5)
+                 .attr("y", 15) // text up or down
+                 .attr("x", -40) // text left or right
                  .text(function(d){
                   if(comparisonArr[1] == 'cost'){
                     return "USD";
@@ -312,15 +341,15 @@ function callback(error, worldData, mobileData) {
 
   
   // looking at the valid arguments for updateSelection we can see what data we want in the buttons
-  var unitData = [['Small Plans (less than 1GB)', 'mb'], ['Large Plans (1GB or more)', 'gb']];
-  var comparisonData = [['Average Cost per Gigabyte', 'cost', 'cost.bucket'],
-  ['Cost as Percent of Income', 'percent.income', 'percent.income.bucket']];
+  var unitData = [['Small (<1GB)', 'mb'], ['Large (>=1GB)', 'gb']];
+  var comparisonData = [['USD/GB', 'cost', 'cost.bucket'],
+  ['% Income', 'percent.income', 'percent.income.bucket']];
   
   // unit buttons
   var unitTitle = d3.select("#control-panel")
                     .append("div")
-                    .attr("class", "unitTitle")
-                    .text("Size:");
+                    .attr("id", "unitTitle")
+                    .text("Plan Size");
 
   var unitButtons = d3.select("#control-panel")
                     .append("div")
@@ -361,8 +390,8 @@ function callback(error, worldData, mobileData) {
   // comparison buttons
   var comparisonTitle = d3.select("#control-panel")
                     .append("div")
-                    .attr("class", "comparisonTitle")
-                    .text("Cost:");
+                    .attr("id", "comparisonTitle")
+                    .text("Cost");
 
   var comparisonButtons = d3.select("#control-panel")
                     .append("div")
@@ -400,10 +429,13 @@ function callback(error, worldData, mobileData) {
 
 
   // initiate the map on startup to MB and USD/GB
-  var delay=1500; //1.5 seconds
+  d3.selectAll(".buttons")[0][0].click();
+  d3.selectAll(".buttons")[0][2].click();
+  // transition to GB and % Income
+  var delay=3000; //3 seconds
   setTimeout(function(){
-    d3.selectAll(".buttons")[0][0].click();
-    d3.selectAll(".buttons")[0][2].click();
+    d3.selectAll(".buttons")[0][1].click();
+    d3.selectAll(".buttons")[0][3].click();
   }, delay);
 
 

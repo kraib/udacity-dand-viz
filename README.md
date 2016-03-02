@@ -24,9 +24,9 @@ After some initial feedback, I chose to lump data for all plan expirations toget
 
 I realized that there were some errors in currency codes for the 2015 mobile dataset.  Seeing that 2014 data was more polished without these problems, I switched to the 2014 dataset from here on out.  Based upon feedback from the second iteration, I increased the size of the stroke on the map.  This helped to make each country more visible.  Also, I dropped monthly income information but included both cost per gigabyte and cost as percent of income in the tooltip (the tooltip updates for plan size only).  This helped to cut down on the amount of back and forth between getting relevant information and button clicking.  For those countries with no plans for a particular plan size or type, I added that info to the tooltip as well.
 
-[Third Iteration](http://bl.ocks.org/winkelman/raw/4f5e6fd91bd71c2e90e9/)
+[Third Iteration](http://bl.ocks.org/winkelman/raw/0e4d29737b668afd2805/)
 
-The buttons needed to be more visible.  Text was moved to the left of the page so that the buttons could be seen without scrolling.  Because the map was originally bare, it wasn't apparent that it could be colored.  I initiated the map comparing small plans and cost per gigabyte after a brief delay.
+The page needed to be scrolled down to be able to see the buttons and legend.  Text was moved to the left so that all things pertaining to the graphic were in one column.  The legend and the buttons were also moved to the top for ease.  Because the map was originally bare, it wasn't apparent that it could be faceted by color.  I initiated the map by comparing small plans and cost per gigabyte, then after a brief delay by large plans and cost as a percentage of income.  This also helped to emphasizes the overall narrative of the visualization.
 
 #### Methods
 
