@@ -40,6 +40,7 @@ function callback(error, worldData, mobileData) {
     countryCode = d['country.code'];
     countryData[countryCode] = {'mb': {}, 'gb': {}}; // separate by unit type
 
+    // NOT NECESSARY!!! FIX LATER
     // cast relevant data as numerical, keep buckets as strings
     d['gni.month'] = +d['gni.month'];
     d['gb.cost.gb'] = +d['gb.cost.gb'];
@@ -396,6 +397,14 @@ function callback(error, worldData, mobileData) {
     comparisonArray = d;
     updateSelection([unitArray, comparisonArray]);
     });
+
+
+  // initiate the map on startup to MB and USD/GB
+  var delay=1500; //1.5 seconds
+  setTimeout(function(){
+    d3.selectAll(".buttons")[0][0].click();
+    d3.selectAll(".buttons")[0][2].click();
+  }, delay);
 
 
 } // callback closure

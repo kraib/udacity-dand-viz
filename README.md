@@ -4,7 +4,7 @@
 This is the fifth project for the Data Analyst Nanodegree and accompanies the [Data Visualization and D3.js](https://www.udacity.com/course/data-visualization-and-d3js--ud507) course from Udacity.  In this project we use d3.js and design principles to create a data visualization that tells a story an audience.  The visualization is iterated on a few times which allows us to incorporate feedback from peers in the course.
 
 The interactive visualization can be viewed here:
-http://bl.ocks.org/winkelman/raw/4f5e6fd91bd71c2e90e9/
+http://bl.ocks.org/winkelman/raw/b5932f21378f1459657b/
 
 #### Summary
 
@@ -18,11 +18,15 @@ I decided to keep this choropleth map as simple as possible without compromising
 
 [First Iteration](http://bl.ocks.org/winkelman/raw/1bde4378489da1118e7b/)
 
-After some initial feedback, I elected to lump data for all plan expiration together.  Originally there were buttons to facet the map by expiry/duration but because not all countries have plans with similar expiry, this left parts of the map bare with no color (essentially no data).  Also, I limited the information in the tooltip to the buttons selected.  At first the tooltip included all of the information but it was large and visually overwhelming.  Color was changed to represent buckets instead of numerical values which improved color distribution.  I also added a legend for reference.
+After some initial feedback, I chose to lump data for all plan expirations together.  Originally there were buttons to facet the map by expiry/duration but because not all countries have plans with similar expiry, this left parts of the map bare with no color (essentially no data).  Also, I limited the information in the tooltip to the buttons selected.  At first the tooltip included all of the information but it was large and visually overwhelming.  Color was changed to represent buckets instead of numerical values which improved color distribution.  I also added a legend for reference.
 
 [Second Iteration](http://bl.ocks.org/winkelman/raw/ac17f67a45ee4eeee707/)
 
-After the second iteration, I realized that there were some errors in currency codes for the 2015 mobile dataset.  Seeing that 2014 data was more polished without these problems, I switched to the 2014 dataset from here on out.  Based upon feedback from the second iteration, I increased the size of the stroke on the map.  This helped to make each country more visible.  Also, I dropped monthly income information but included both cost per gigabyte and cost as percent of income in the tooltip (the tooltip updates for plan size only).  This helped to cut down on the amount of back and forth between getting relevant information and button clicking.  For those countries with no plans for a particular size/type, I added this to the tooltip as well.
+I realized that there were some errors in currency codes for the 2015 mobile dataset.  Seeing that 2014 data was more polished without these problems, I switched to the 2014 dataset from here on out.  Based upon feedback from the second iteration, I increased the size of the stroke on the map.  This helped to make each country more visible.  Also, I dropped monthly income information but included both cost per gigabyte and cost as percent of income in the tooltip (the tooltip updates for plan size only).  This helped to cut down on the amount of back and forth between getting relevant information and button clicking.  For those countries with no plans for a particular plan size or type, I added that info to the tooltip as well.
+
+[Third Iteration](http://bl.ocks.org/winkelman/raw/4f5e6fd91bd71c2e90e9/)
+
+The buttons needed to be more visible.  Text was moved to the left of the page so that the buttons could be seen without scrolling.  Because the map was originally bare, it wasn't apparent that it could be colored.  I initiated the map comparing small plans and cost per gigabyte after a brief delay.
 
 #### Methods
 
